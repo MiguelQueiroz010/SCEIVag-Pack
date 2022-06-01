@@ -76,7 +76,7 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(210, 13);
             this.label3.TabIndex = 4;
-            this.label3.Text = "SCEI BHD/IECS AUDIO PACK 2021";
+            this.label3.Text = "SCEI BHD/IECS AUDIO PACK 2022";
             this.label3.Click += new System.EventHandler(this.label1_Click);
             // 
             // pictureBox2

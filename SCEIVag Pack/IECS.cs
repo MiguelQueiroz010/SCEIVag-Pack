@@ -13,7 +13,7 @@ namespace SCEIVag_Pack
         public byte[] HeaderData;
         public byte[] StreamData;
         public byte[] Input;
-        public int streamBeforePad;
+
         public int Size;
         public int IECS_Size;
         public int VAGS_Offset;
@@ -22,6 +22,7 @@ namespace SCEIVag_Pack
         public int SsetSec_Offset;
         public int SampleSec_Offset;
         public int VAGIndexSec_Offset;
+
         public List<Section> Seções;
         public Version version;
         public VAGIndex vagi;
@@ -29,46 +30,98 @@ namespace SCEIVag_Pack
         public Sset sset;
         public Program prog;
         public IECS(byte[] input)
-            {
+        {
             Input = input;
             #region Separar Offsets
             int headsize = (int)ReadUInt(input, 0x18, Int.UInt32);
-                HeaderData = ReadBlock(input, 0x10, (uint)headsize);
-                Size = HeaderData.Length;
-                IECS_Size = (int)ReadUInt(HeaderData, 0xC, Int.UInt32);
-                VAGS_Size = (int)ReadUInt(HeaderData, 0x10, Int.UInt32);
-                ProgSec_Offset = (int)ReadUInt(HeaderData, 0x14, Int.UInt32);
-                SsetSec_Offset = (int)ReadUInt(HeaderData, 0x18, Int.UInt32);
-                SampleSec_Offset = (int)ReadUInt(HeaderData, 0x1C, Int.UInt32);
-                VAGIndexSec_Offset = (int)ReadUInt(HeaderData, 0x20, Int.UInt32);
+            HeaderData = ReadBlock(input, 0x10, (uint)headsize);
+            Size = HeaderData.Length;
+
+            IECS_Size = (int)ReadUInt(HeaderData, 0xC, Int.UInt32);
+            VAGS_Size = (int)ReadUInt(HeaderData, 0x10, Int.UInt32);
+
+            ProgSec_Offset = (int)ReadUInt(HeaderData, 0x14, Int.UInt32);
+            SsetSec_Offset = (int)ReadUInt(HeaderData, 0x18, Int.UInt32);
+
+            SampleSec_Offset = (int)ReadUInt(HeaderData, 0x1C, Int.UInt32);
+            VAGIndexSec_Offset = (int)ReadUInt(HeaderData, 0x20, Int.UInt32);
             #endregion
             #region Separar Seções
             Seções = new List<Section>();
             uint versionsize = (uint)ReadUInt(input, 0x8, Int.UInt32);
             version = new Version(ReadBlock(input, 0, versionsize));
-            uint vagisize = (uint)ReadUInt(input, VAGIndexSec_Offset+8, Int.UInt32);
+
+            uint vagisize = (uint)ReadUInt(input, VAGIndexSec_Offset + 8, Int.UInt32);
             vagi = new VAGIndex(ReadBlock(input, (uint)VAGIndexSec_Offset, vagisize), VAGS_Size);
-            uint samplesize = (uint)ReadUInt(input, SampleSec_Offset+8, Int.UInt32);
+
+            uint samplesize = (uint)ReadUInt(input, SampleSec_Offset + 8, Int.UInt32);
             sample = new Sample(ReadBlock(input, (uint)SampleSec_Offset, samplesize));
-            uint ssetsize = (uint)ReadUInt(input, SsetSec_Offset+8, Int.UInt32);
+
+            uint ssetsize = (uint)ReadUInt(input, SsetSec_Offset + 8, Int.UInt32);
             sset = new Sset(ReadBlock(input, (uint)SsetSec_Offset, ssetsize));
-            uint progsize = (uint)ReadUInt(input, ProgSec_Offset+8, Int.UInt32);
+
+            uint progsize = (uint)ReadUInt(input, ProgSec_Offset + 8, Int.UInt32);
             prog = new Program(ReadBlock(input, (uint)ProgSec_Offset, progsize));
-            var reader = new BinaryReader(new MemoryStream(input));
-            reader.BaseStream.Position = IECS_Size;
-            while(reader.ReadByte()==0xFF)
-            {
-                streamBeforePad++;
-            }
-            reader.Close();
-            VAGS_Offset = IECS_Size + streamBeforePad;
+
+            VAGS_Offset = IECS_Size;//Padded with 0x800
+            while (VAGS_Offset % 0x800 != 0)
+                VAGS_Offset++;
+
             StreamData = ReadBlock(input, (uint)VAGS_Offset, (uint)VAGS_Size);
+
             Seções.Add(version);
             Seções.Add(vagi);
             Seções.Add(sample);
             Seções.Add(sset);
             Seções.Add(prog);
             #endregion
+            #region Separar Seções
+            foreach (var vag in vagi.Vdata)
+            {
+                byte[] vags = ReadBlock(StreamData, (uint)vag.StreamOffset, (uint)vag.StreamSize);
+                vag.StreamVAG = vags;
+            }
+            #endregion
+        }
+        public void RebuildIECS()
+        {
+            var iecs = new List<byte>();
+            #region Version
+            iecs.AddRange(version.SectionDATA);
+            #endregion
+            #region Vagi+Streams
+            var streamdata = new List<byte>();
+            int offset = 0;
+            foreach(var vag in vagi.Vdata)
+            {
+                var vags = new List<byte>();
+                vags.AddRange(vag.StreamVAG);
+                while (vags.Count % 0x10 != 0)
+                    streamdata.Add(0);//ou 0x77 wwwww
+
+                streamdata.AddRange(vags.ToArray());
+                vag.StreamOffset = offset;
+                vag.StreamSize = vags.Count;
+                offset += vag.StreamSize;
+
+                #region Write to Section
+                Array.Copy(BitConverter.GetBytes((UInt32)vag.StreamOffset), 0, vagi.SectionDATA, vag.PointerSecOff, 4);//Write offsets to data
+                Array.Copy(BitConverter.GetBytes((UInt16)vag.Frequency), 0, vagi.SectionDATA, vag.PointerSecOff+4, 2);//Write freqs to data
+                #endregion
+
+            }
+            StreamData = streamdata.ToArray();
+            #endregion
+            VAGS_Size = StreamData.Length;
+            iecs.AddRange(HeaderData);
+            iecs.AddRange(vagi.SectionDATA);
+            iecs.AddRange(sample.SectionDATA);
+            iecs.AddRange(sset.SectionDATA);
+            iecs.AddRange(prog.SectionDATA);
+            while (iecs.Count % 0x800 != 0)
+                iecs.Add(0xFF);
+            iecs.AddRange(StreamData);
+            Input = iecs.ToArray();
         }
         public class Section
         {
@@ -77,7 +130,7 @@ namespace SCEIVag_Pack
             public Type tipo;
         }
         #region Sub-Seções
-        public class Version:Section
+        public class Version : Section
         {
             public int Versão;
             public Version(byte[] secData)
@@ -94,18 +147,17 @@ namespace SCEIVag_Pack
             public int VAGcount;
             public int[] DataOffsets;
             public List<VAGData> Vdata;
-            public VAGIndex(byte[]secData, int streamSize)
+            public VAGIndex(byte[] secData, int streamSize)
             {
                 SectionDATA = secData;
                 tipo = Type.VAGIndex;
                 Size = SectionDATA.Length;
-                VAGcount = (int)ReadUInt(SectionDATA, 0xC, Int.UInt32)+1;
+                VAGcount = (int)ReadUInt(SectionDATA, 0xC, Int.UInt32) + 1;
                 #region Separar Offsets dos dados
                 DataOffsets = new int[VAGcount];
                 int offset = 0x10;
-                for(int i = 0;i<VAGcount;i++)
+                for (int i = 0; i < VAGcount; i++)
                 {
-                    
                     DataOffsets[i] = (int)ReadUInt(SectionDATA, offset, Int.UInt32);
                     offset += 4;
                 }
@@ -113,37 +165,40 @@ namespace SCEIVag_Pack
                 #region Separar dados VAG
                 Vdata = new List<VAGData>();
                 int k = 0;
-                foreach(int vagoff in DataOffsets)
+                foreach (int vagoff in DataOffsets)
                 {
-                    int hz = (int)ReadUInt(SectionDATA, vagoff +4, Int.UInt16);
-                    int unk = (int)ReadUInt(SectionDATA, vagoff +6, Int.UInt16);
+                    int hz = (int)ReadUInt(SectionDATA, vagoff + 4, Int.UInt16);
+                    int unk = (int)ReadUInt(SectionDATA, vagoff + 6, Int.UInt16);
                     int soff = (int)ReadUInt(SectionDATA, vagoff, Int.UInt32);
                     int size = 0;
-                    if (k == DataOffsets.Count()-1)
+                    if (k == DataOffsets.Count() - 1)
                     {
                         size = streamSize - soff;
                     }
                     else
                     {
-                        size = (int)ReadUInt(SectionDATA, DataOffsets[k+1], Int.UInt32) - soff;
+                        size = (int)ReadUInt(SectionDATA, DataOffsets[k + 1], Int.UInt32) - soff;
                     }
-                    Vdata.Add(new VAGData(hz, unk, soff,size));
+                    Vdata.Add(new VAGData(hz, unk, soff, size,vagoff));
                     k++;
                 }
                 #endregion                
             }
-            public struct VAGData
+            public class VAGData
             {
                 public int Frequency;
                 public int unk;
-                public int StreamOffset;
+                public int StreamOffset, PointerSecOff;
                 public int StreamSize;
-                public VAGData(int hz, int Unk, int soffset, int size)
+                public byte[] StreamVAG;
+                public VAGData(int hz, int Unk, int soffset, int size,int poff = 0, byte[] vag = null)
                 {
                     Frequency = hz;
                     unk = Unk;
                     StreamOffset = soffset;
                     StreamSize = size;
+                    StreamVAG = vag;
+                    PointerSecOff = poff; 
                 }
             }
         }
@@ -230,9 +285,9 @@ namespace SCEIVag_Pack
             #region Contagem e Offsets
             fileCount = 0;
             IECSoffsets = new List<int>();
-            for(int i =0;i<Container.Length;i+=8)
+            for (int i = 0; i < Container.Length; i += 8)
             {
-                if(Encoding.Default.GetString(ReadBlock(Container,(uint)i, 8))=="IECSsreV")
+                if (Encoding.Default.GetString(ReadBlock(Container, (uint)i, 8)) == "IECSsreV")
                 {
                     IECSoffsets.Add(i);
                     fileCount++;
@@ -244,9 +299,9 @@ namespace SCEIVag_Pack
             int k = 0;
             int size = 0;
             IECSsizes = new List<int>();
-            foreach(var iecoff in IECSoffsets)
+            foreach (var iecoff in IECSoffsets)
             {
-                if (k==IECSoffsets.Count()-1)
+                if (k == IECSoffsets.Count() - 1)
                 {
                     size = input.Length - iecoff;
                 }
@@ -260,6 +315,18 @@ namespace SCEIVag_Pack
                 k++;
             }
             #endregion
+        }
+        public void Rebuild()
+        {
+            var container = new List<byte>();
+            for (int i = 0; i < fileCount; i++)
+            {
+                container.AddRange(sceiFiles[i].Input);
+
+                while (container.Count() % 0x800 != 0)
+                    container.Add(0xFF);
+            }
+            Container = container.ToArray();
         }
     }
 }

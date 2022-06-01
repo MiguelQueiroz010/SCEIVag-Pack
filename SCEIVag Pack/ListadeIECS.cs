@@ -28,7 +28,14 @@ namespace SCEIVag_Pack
             foreach(var IECS in f1.container.IECSsizes)
             {
                 ListViewItem item = new ListViewItem(k.ToString());
-                item.SubItems.Add("iecs" + k.ToString() + ".bhd");
+
+                string sceiname = "iecs" + k.ToString() + ".bhd";
+
+                if(f1.FileList!=null)
+                    sceiname = f1.FileList.ElementAt(k).Key;
+
+                item.SubItems.Add(sceiname);
+
                 item.SubItems.Add(IECS.ToString());
                 listView1.Items.Add(item);
                 k++;
