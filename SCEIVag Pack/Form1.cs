@@ -201,7 +201,8 @@ namespace SCEIVag_Pack
             int freq = 0;
             OpenFileDialog opn = new OpenFileDialog();
             opn.Title = "Selecione o áudio VAG para importar e sobrescrever";
-            opn.Filter = "PS2 Vag Audio(*.vag)|*.vag";
+            opn.Filter = "Wave Audio(*.wav)|*.wav|PS2 Vag Audio(*.vag)|*.vag";
+            opn.FilterIndex = 2;
             if (opn.ShowDialog() == DialogResult.OK)
             {
                 if (container != null)
