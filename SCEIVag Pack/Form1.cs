@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Media;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Windows.Forms;
-using static SCEIVag_Pack.Bin;
 using System.Xml;
+using static SCEIVag_Pack.Bin;
 
 
 namespace SCEIVag_Pack
@@ -143,34 +141,23 @@ namespace SCEIVag_Pack
                 listView1.Items.Add(item);
                 i++;
             }
-            if(!listView1.Visible)
-               ShowHide();
+            if (!listView1.Visible)
+                ShowHide();
         }
         public void Fechar()
         {
             sceifile = null;
-            filename = null;
             container = null;
-            listadeIECS = null;
             extrairToolStripMenuItem.Enabled = false;
             importarVAGToolStripMenuItem.Enabled = false;
             extrairTudoToolStripMenuItem.Enabled = false;
             fecharToolStripMenuItem1.Enabled = false;
             extrairuniccon.Enabled = false;
             listView1.Items.Clear();
-            try
-            {
-                foreach (var form in Application.OpenForms)
-                {
-                    try
-                    {
-                        var opt = form as ListadeIECS;
-                        opt.Close();
-                    }
-                    catch (Exception) { }
-                }
-            }
-            catch (Exception) { }
+
+            if (listadeIECS != null && listadeIECS.Visible)
+                listadeIECS.Close();
+
             if (listView1.Visible)
                 ShowHide();
         }
@@ -291,7 +278,7 @@ namespace SCEIVag_Pack
                 save.Filter = "Container SNDATA(*.bin)|*.bin";
             else
                 save.Filter = "IECS Audio(*.bhd;*,iecs)|*.bhd;*.iecs";
-            if(save.ShowDialog()==DialogResult.OK)
+            if (save.ShowDialog() == DialogResult.OK)
             {
 
                 if (container != null)
@@ -356,20 +343,20 @@ namespace SCEIVag_Pack
                 int i = 0;
                 foreach (var vag in sceifile.vagi.Vdata)
                 {
-                    
+
 
                     byte[] VAG = ReadBlock(sceifile.StreamData, (uint)vag.StreamOffset, (uint)vag.StreamSize);
 
                     string name = listView1.Items[i].SubItems[1].Text.Substring(0, listView1.Items[i].SubItems[1].Text.Length - 4);
 
-                        if (exportwav)
-                        {
-                            File.WriteAllBytes(folder + @"\" + name+ ".wav", ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag.Frequency, 1));
-                        }
-                        else
-                        {
-                            File.WriteAllBytes(folder + @"\" + name + ".wav", VAG);
-                        }
+                    if (exportwav)
+                    {
+                        File.WriteAllBytes(folder + @"\" + name + ".wav", ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag.Frequency, 1));
+                    }
+                    else
+                    {
+                        File.WriteAllBytes(folder + @"\" + name + ".wav", VAG);
+                    }
 
                     i++;
                 }
@@ -505,7 +492,7 @@ namespace SCEIVag_Pack
 
                             if (Path.GetExtension(entries.ElementAt(f).Value[v]) == ".wav")
                             {
-                                sounddata = ADPCM.FromPCMMono(ADPCM.WAVtoPCM(sounddata,vag.Frequency,out freqd, out freq));
+                                sounddata = ADPCM.FromPCMMono(ADPCM.WAVtoPCM(sounddata, vag.Frequency, out freqd, out freq));
                             }
                             else
                             {
@@ -610,14 +597,17 @@ namespace SCEIVag_Pack
                         Fechar();
                     }
                     #endregion
-                    fecharToolStripMenuItem1.Enabled = true;
-                    #region Abrir arquivo
-                    container = new BINContainer(File.ReadAllBytes(filename));
-                    #endregion
-                    #region Adicionar na lista de IECS
-                    listadeIECS = new ListadeIECS(this);
-                    listadeIECS.Show();
-                    #endregion
+                    if (filename != null)
+                    {
+                        fecharToolStripMenuItem1.Enabled = true;
+                        #region Abrir arquivo
+                        container = new BINContainer(File.ReadAllBytes(filename));
+                        #endregion
+                        #region Adicionar na lista de IECS
+                        listadeIECS = new ListadeIECS(this);
+                        listadeIECS.Show();
+                        #endregion
+                    }
                     break;
                 case false:
                     var open = new OpenFileDialog();
@@ -705,9 +695,9 @@ namespace SCEIVag_Pack
                 extrairToolStripMenuItem.Enabled = true;
                 importarVAGToolStripMenuItem.Enabled = true;
                 button1.Enabled = true;
-                if(reprodz)
+                if (reprodz)
                 {
-                    if(player!=null)
+                    if (player != null)
                     {
                         player.Stop();
                         player = null;
@@ -791,6 +781,7 @@ namespace SCEIVag_Pack
             {
                 FileList = new Dictionary<string, string[]>();
                 FileList = ReadXML(op.FileName);
+                AbrirContainer(true);
             }
         }
 
@@ -825,5 +816,19 @@ namespace SCEIVag_Pack
         }
 
         #endregion
+
+        private void listView1_DoubleClick(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 1)
+                importarVAGToolStripMenuItem.PerformClick();
+        }
+
+        private void listView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ctx_Iecs.Show(MousePosition);
+            }
+        }
     }
 }
