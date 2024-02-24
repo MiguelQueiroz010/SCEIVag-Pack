@@ -20,6 +20,7 @@ namespace SCEIVag_Pack
         public BINContainer container;
         public ListadeIECS listadeIECS;
         public Graphics paneSave;
+        public string caminhoELF;
 
         public SoundPlayer player;
 
@@ -201,6 +202,7 @@ namespace SCEIVag_Pack
             OpenFileDialog opn = new OpenFileDialog();
             opn.Title = "Selecione o áudio VAG para importar e sobrescrever";
             opn.Filter = "Wave Audio(*.wav)|*.wav|PS2 Vag Audio(*.vag)|*.vag";
+            opn.FilterIndex = 2;
             if (opn.ShowDialog() == DialogResult.OK)
             {
                 if (container != null)
@@ -258,11 +260,11 @@ namespace SCEIVag_Pack
         }
         public void Salvar()
         {
-            try
             {
                 if (container != null)
                 {
                     container.Rebuild();
+                    container.SaveToELF();
                     File.WriteAllBytes(filename, container.Container);
                 }
                 else
@@ -279,11 +281,6 @@ namespace SCEIVag_Pack
                 timer1.Enabled = true;
                 timer1.Start();
                 RefreshFile();
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("Erro ao salvar o arquivo!\nVerifique se outro processo não o está usando!", "Salvar",
-MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         void SalvarComo()
@@ -633,16 +630,23 @@ MessageBoxButtons.OK, MessageBoxIcon.Error);
                         {
                             Fechar();
                         }
-                        #endregion
-                        filename = open.FileName;
-                        fecharToolStripMenuItem1.Enabled = true;
-                        #region Abrir arquivo
-                        container = new BINContainer(File.ReadAllBytes(filename));
-                        #endregion
-                        #region Adicionar na lista de IECS
-                        listadeIECS = new ListadeIECS(this);
-                        listadeIECS.Show();
-                        #endregion
+                        var openELF = new OpenFileDialog();
+                        openELF.Filter = "Todos os arquivos(*.*)|*.*";
+                        openELF.Title = "Escolha um arquivo ELF";
+                        if (openELF.ShowDialog() == DialogResult.OK)
+                        {
+                            #endregion
+                            filename = open.FileName;
+                            fecharToolStripMenuItem1.Enabled = true;
+                            #region Abrir arquivo
+                            container = new BINContainer(File.ReadAllBytes(filename));
+                            container.caminhoELF = openELF.FileName;
+                            #endregion
+                            #region Adicionar na lista de IECS
+                            listadeIECS = new ListadeIECS(this);
+                            listadeIECS.Show();
+                            #endregion
+                        }
                     }
                     break;
             }
