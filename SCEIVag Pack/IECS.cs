@@ -29,6 +29,9 @@ namespace SCEIVag_Pack
         public Sample sample;
         public Sset sset;
         public Program prog;
+
+        public List<int> ELFIECSunk;
+        public List<int> ELFVAGS_Size;
         public IECS(byte[] input)
         {
             Input = input;
@@ -39,7 +42,6 @@ namespace SCEIVag_Pack
 
             IECS_Size = (int)ReadUInt(HeaderData, 0xC, Int.UInt32);
             VAGS_Size = (int)ReadUInt(HeaderData, 0x10, Int.UInt32);
-
             ProgSec_Offset = (int)ReadUInt(HeaderData, 0x14, Int.UInt32);
             SsetSec_Offset = (int)ReadUInt(HeaderData, 0x18, Int.UInt32);
 
@@ -113,6 +115,7 @@ namespace SCEIVag_Pack
             StreamData = streamdata.ToArray();
             #endregion
             VAGS_Size = StreamData.Length;
+            BitConverter.GetBytes(VAGS_Size).CopyTo(HeaderData, 0x10);
             iecs.AddRange(HeaderData);
             iecs.AddRange(vagi.SectionDATA);
             iecs.AddRange(sample.SectionDATA);
@@ -277,7 +280,12 @@ namespace SCEIVag_Pack
         public List<IECS> sceiFiles;
         public int fileCount;
         public byte[] Container;
+        public byte[] currentContainer;
+        public string caminhoELF;
         public List<int> IECSoffsets;
+        public List<int> ELFIECSoffset = new List<int>();
+        public List<int> ELFIECSunk = new List<int>();
+        public List<int> ELFIECSVAGS_Size = new List<int>();
         public List<int> IECSsizes;
         public BINContainer(byte[] input)
         {
@@ -318,15 +326,176 @@ namespace SCEIVag_Pack
         }
         public void Rebuild()
         {
+            ELFIECSoffset.Clear();
+            ELFIECSunk.Clear();
+            ELFIECSVAGS_Size.Clear();
+            int[] indicesRemover = { 25, 26 };
             var container = new List<byte>();
             for (int i = 0; i < fileCount; i++)
             {
                 container.AddRange(sceiFiles[i].Input);
+                currentContainer = sceiFiles[i].Input.ToArray();
+                int unk = BitConverter.ToInt32(currentContainer, 0x1C);
+                int vags_size = BitConverter.ToInt32(currentContainer, 0x20);
 
-                while (container.Count() % 0x800 != 0)
+                while (container.Count % 0x800 != 0)
                     container.Add(0xFF);
+
+
+                if (!indicesRemover.Contains(i))
+                {
+                    ELFIECSunk.Add(unk);
+                    ELFIECSVAGS_Size.Add(vags_size);
+                    if (i == 0)
+                    {
+                        ELFIECSoffset.Add(0);
+                    }
+                    ELFIECSoffset.Add(container.Count);
+
+                }
             }
             Container = container.ToArray();
+
+            ELFIECSoffset.RemoveAt(23);
+            ELFIECSunk.RemoveAt(23);
+            ELFIECSVAGS_Size.RemoveAt(23);
+            ELFIECSoffset.RemoveAt(24);
+            ELFIECSunk.RemoveAt(24);
+            ELFIECSVAGS_Size.RemoveAt(24);
+
+            TrocarIndices(ELFIECSunk, 4, 3);
+            TrocarIndices(ELFIECSVAGS_Size, 4, 3);
+            TrocarIndices(ELFIECSoffset, 4, 3);
+
+            int[] indices = { 5, 13, 25, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
+
+            int novoValor = -1;
+
+            foreach (int indice in indices)
+            {
+                AdicionarValorNoIndice(ELFIECSunk, indice, novoValor);
+
+                AdicionarValorNoIndice(ELFIECSVAGS_Size, indice, novoValor);
+
+                AdicionarValorNoIndice(ELFIECSoffset, indice, novoValor);
+            }
+
+            ELFIECSoffset.Insert(44, ELFIECSoffset[6]);
+            ELFIECSunk.Insert(44, ELFIECSunk[6]);
+            ELFIECSVAGS_Size.Insert(44, ELFIECSVAGS_Size[6]);
+
+            for (int i = 6; i < 10; i++)
+            {
+                ELFIECSoffset.Insert(i + 46, ELFIECSoffset[i]);
+                ELFIECSVAGS_Size.Insert(i + 46, ELFIECSVAGS_Size[i]);
+                ELFIECSunk.Insert(i + 46, ELFIECSunk[i]);
+            }
+
+            ELFIECSoffset.Insert(56, ELFIECSoffset[19]);
+            ELFIECSunk.Insert(56, ELFIECSunk[19]);
+            ELFIECSVAGS_Size.Insert(56, ELFIECSVAGS_Size[19]);
+
+            for (int i = 39; i < 44; i++)
+            {
+                ELFIECSoffset.Insert(i + 18, ELFIECSoffset[i]);
+                ELFIECSVAGS_Size.Insert(i + 18, ELFIECSVAGS_Size[i]);
+                ELFIECSunk.Insert(i + 18, ELFIECSunk[i]);
+            }
+
+
+            ELFIECSoffset.Insert(78, ELFIECSoffset[62]);
+            ELFIECSunk.Insert(78, ELFIECSunk[62]);
+            ELFIECSVAGS_Size.Insert(78, ELFIECSVAGS_Size[62]);
+
+            ELFIECSoffset.Insert(79, -1);
+            ELFIECSunk.Insert(79, -1);
+            ELFIECSVAGS_Size.Insert(79, -1);
+
+            ELFIECSoffset.Insert(80, ELFIECSoffset[68]);
+            ELFIECSunk.Insert(80, ELFIECSunk[68]);
+            ELFIECSVAGS_Size.Insert(80, ELFIECSVAGS_Size[68]);
+
+            ELFIECSoffset.Insert(93, -1);
+            ELFIECSunk.Insert(93, -1);
+            ELFIECSVAGS_Size.Insert(93, -1);
+        }
+
+        private void TrocarIndices(List<int> lista, int indiceA, int indiceB)
+        {
+            int temp = lista[indiceA];
+            lista[indiceA] = lista[indiceB];
+            lista[indiceB] = temp;
+        }
+
+        void AdicionarValorNoIndice(List<int> lista, int indice, int valor)
+        {
+            lista.Insert(indice, valor);
+        }
+
+        public void SaveToELF()
+        {
+            for (int i = 0; i < ELFIECSunk.Count; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        using (FileStream fileStream = new FileStream(caminhoELF, FileMode.Open, FileAccess.Write))
+                        {
+                            fileStream.Seek(0x31581C, SeekOrigin.Begin);
+
+                            int valor = ELFIECSunk[i];
+                            int valor2 = ELFIECSVAGS_Size[i];
+                            int valor3 = ELFIECSoffset[i];
+                            byte[] bytes = BitConverter.GetBytes(valor);
+                            fileStream.Write(bytes, 0, bytes.Length);
+                            byte[] bytes2 = BitConverter.GetBytes(valor2);
+                            fileStream.Write(bytes2, 0, bytes2.Length);
+                            byte[] bytes3 = BitConverter.GetBytes(valor3);
+                            fileStream.Write(bytes3, 0, bytes3.Length);
+                        }
+                        break;
+                    case int ValorF when ValorF >= 1 && ValorF <= 4:
+                        using (FileStream fileStream = new FileStream(caminhoELF, FileMode.Open, FileAccess.Write))
+                        {
+                            int value = i - 1;
+                            int offsetC = value * 0xC;
+                            int OffsetD = 0x315CA0 + offsetC;
+                            fileStream.Seek(OffsetD, SeekOrigin.Begin);
+
+                            int valor = ELFIECSoffset[i];
+                            int valor2 = ELFIECSunk[i];
+                            int valor3 = ELFIECSVAGS_Size[i];
+                            byte[] bytes = BitConverter.GetBytes(valor);
+                            fileStream.Write(bytes, 0, bytes.Length);
+                            byte[] bytes2 = BitConverter.GetBytes(valor2);
+                            fileStream.Write(bytes2, 0, bytes2.Length);
+                            byte[] bytes3 = BitConverter.GetBytes(valor3);
+                            fileStream.Write(bytes3, 0, bytes3.Length);
+                        }
+                        break;
+                    case int valorF when valorF >= 5:
+                        using (FileStream fileStream = new FileStream(caminhoELF, FileMode.Open, FileAccess.Write))
+                        {
+                            int value = i - 5;
+                            int offsetC = value * 0xC;
+                            int OffsetD = 0x315830 + offsetC;
+                            fileStream.Seek(OffsetD, SeekOrigin.Begin);
+
+                            int valor = ELFIECSoffset[i];
+                            int valor2 = ELFIECSunk[i];
+                            int valor3 = ELFIECSVAGS_Size[i];
+                            byte[] bytes = BitConverter.GetBytes(valor);
+                            fileStream.Write(bytes, 0, bytes.Length);
+                            byte[] bytes2 = BitConverter.GetBytes(valor2);
+                            fileStream.Write(bytes2, 0, bytes2.Length);
+                            byte[] bytes3 = BitConverter.GetBytes(valor3);
+                            fileStream.Write(bytes3, 0, bytes3.Length);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
     }
 }
