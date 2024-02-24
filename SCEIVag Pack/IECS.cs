@@ -128,6 +128,7 @@ namespace SCEIVag_Pack
             public int Size;
             public byte[] SectionDATA;
             public Type tipo;
+            // fafafafafafa
         }
         #region Sub-Seções
         public class Version : Section
