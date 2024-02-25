@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
-using static SCEIVag_Pack.Bin;
+using static IOextent;
 
 namespace SCEIVag_Pack
 {
@@ -318,9 +318,9 @@ namespace SCEIVag_Pack
         {
             var b = new List<byte>();
             bool freqx = false;
-            uint riffsize = (uint)ReadUInt(WAV, 4, Int.UInt32);
-            byte[] wavefmt = ReadBlock(WAV, 8, riffsize);
-            int frequency = (int)ReadUInt(wavefmt, 0x10, Int.UInt32);
+            uint riffsize = (uint)WAV.ReadUInt(4, 32);
+            byte[] wavefmt = WAV.ReadBytes(8, (int)riffsize);
+            int frequency = (int)wavefmt.ReadUInt(0x10, 32);
             if (freq != frequency)
             {
                 MessageBox.Show("A frequência do áudio importado é: " + frequency.ToString()+"Hz"
@@ -330,9 +330,9 @@ namespace SCEIVag_Pack
             }
             diffreq = freqx;
             wfreq = frequency;
-            uint pcmoffs = (uint)ReadUInt(wavefmt, 8, Int.UInt32)+0xC;//PCM size offs pointer
-            uint pcmsize = (uint)ReadUInt(wavefmt, (int)pcmoffs+4, Int.UInt32);
-            b.AddRange(ReadBlock(wavefmt, pcmoffs + 8, pcmsize));
+            uint pcmoffs = (uint)wavefmt.ReadUInt(8, 32) +0xC;//PCM size offs pointer
+            uint pcmsize = (uint)wavefmt.ReadUInt((int)pcmoffs + 4, 32);
+            b.AddRange(wavefmt.ReadBytes((int)(pcmoffs + 8), (int)pcmsize));
             return b.ToArray();
         }
         private static void PackSamples(double[] d_samples, short[] v_samples, int predict, int factor)

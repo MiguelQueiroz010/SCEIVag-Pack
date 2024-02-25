@@ -12,8 +12,8 @@ namespace SCEIVag_Pack
 {
     public partial class ListadeIECS : Form
     {
-        Form1 f1;
-        public ListadeIECS(Form1 form1)
+        Main f1;
+        public ListadeIECS(Main form1)
         {
             InitializeComponent();
             f1 = form1;

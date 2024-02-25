@@ -432,14 +432,14 @@ namespace SCEIVag_Pack
             lista.Insert(indice, valor);
         }
 
-        public void SaveToELF()
+        public void SaveToELF(string caminho)
         {
             for (int i = 0; i < ELFIECSunk.Count; i++)
             {
                 switch (i)
                 {
                     case 0:
-                        using (FileStream fileStream = new FileStream(caminhoELF, FileMode.Open, FileAccess.Write))
+                        using (FileStream fileStream = new FileStream(caminho, FileMode.Open, FileAccess.Write))
                         {
                             fileStream.Seek(0x31581C, SeekOrigin.Begin);
 
@@ -455,7 +455,7 @@ namespace SCEIVag_Pack
                         }
                         break;
                     case int ValorF when ValorF >= 1 && ValorF <= 4:
-                        using (FileStream fileStream = new FileStream(caminhoELF, FileMode.Open, FileAccess.Write))
+                        using (FileStream fileStream = new FileStream(caminho, FileMode.Open, FileAccess.Write))
                         {
                             int value = i - 1;
                             int offsetC = value * 0xC;
@@ -474,7 +474,7 @@ namespace SCEIVag_Pack
                         }
                         break;
                     case int valorF when valorF >= 5:
-                        using (FileStream fileStream = new FileStream(caminhoELF, FileMode.Open, FileAccess.Write))
+                        using (FileStream fileStream = new FileStream(caminho, FileMode.Open, FileAccess.Write))
                         {
                             int value = i - 5;
                             int offsetC = value * 0xC;

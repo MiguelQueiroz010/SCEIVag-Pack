@@ -14,8 +14,8 @@ namespace SCEIVag_Pack
     partial class AboutBox1 : Form
     {
         SoundPlayer ss;
-        Form1 f01;
-        public AboutBox1(Form1 f1)
+        Main f01;
+        public AboutBox1(Main f1)
         {
             InitializeComponent();
             f01 = f1;

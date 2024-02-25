@@ -1,6 +1,6 @@
 ﻿namespace SCEIVag_Pack
 {
-    partial class Form1
+    partial class Main
     {
         /// <summary>
         /// Variável de designer necessária.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.arquivoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.abrirBINToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -101,14 +101,14 @@
             // abrirBINToolStripMenuItem
             // 
             this.abrirBINToolStripMenuItem.Name = "abrirBINToolStripMenuItem";
-            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.abrirBINToolStripMenuItem.Text = "Abrir BINContainer";
             this.abrirBINToolStripMenuItem.Click += new System.EventHandler(this.abrirBINToolStripMenuItem_Click);
             // 
             // abrirIECToolStripMenuItem
             // 
             this.abrirIECToolStripMenuItem.Name = "abrirIECToolStripMenuItem";
-            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.abrirIECToolStripMenuItem.Text = "Abrir IEC";
             this.abrirIECToolStripMenuItem.Click += new System.EventHandler(this.abrirIECToolStripMenuItem_Click);
             // 
@@ -116,7 +116,7 @@
             // 
             this.salvarToolStripMenuItem.Enabled = false;
             this.salvarToolStripMenuItem.Name = "salvarToolStripMenuItem";
-            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.salvarToolStripMenuItem.Text = "Salvar";
             this.salvarToolStripMenuItem.Click += new System.EventHandler(this.salvarToolStripMenuItem_Click);
             // 
@@ -124,7 +124,7 @@
             // 
             this.salvarComoToolStripMenuItem.Enabled = false;
             this.salvarComoToolStripMenuItem.Name = "salvarComoToolStripMenuItem";
-            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.salvarComoToolStripMenuItem.Text = "Salvar Como";
             this.salvarComoToolStripMenuItem.Click += new System.EventHandler(this.salvarComoToolStripMenuItem_Click);
             // 
@@ -132,14 +132,14 @@
             // 
             this.fecharToolStripMenuItem.Enabled = false;
             this.fecharToolStripMenuItem.Name = "fecharToolStripMenuItem";
-            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.fecharToolStripMenuItem.Text = "Fechar";
             this.fecharToolStripMenuItem.Click += new System.EventHandler(this.fecharToolStripMenuItem_Click);
             // 
             // sairToolStripMenuItem
             // 
             this.sairToolStripMenuItem.Name = "sairToolStripMenuItem";
-            this.sairToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.sairToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.sairToolStripMenuItem.Text = "Sair";
             this.sairToolStripMenuItem.Click += new System.EventHandler(this.sairToolStripMenuItem_Click);
             // 
@@ -157,7 +157,7 @@
             // 
             this.extrairToolStripMenuItem.Enabled = false;
             this.extrairToolStripMenuItem.Name = "extrairToolStripMenuItem";
-            this.extrairToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.extrairToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.extrairToolStripMenuItem.Text = "Extrair VAG";
             this.extrairToolStripMenuItem.Click += new System.EventHandler(this.extrairToolStripMenuItem_Click);
             // 
@@ -165,7 +165,7 @@
             // 
             this.importarVAGToolStripMenuItem.Enabled = false;
             this.importarVAGToolStripMenuItem.Name = "importarVAGToolStripMenuItem";
-            this.importarVAGToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.importarVAGToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.importarVAGToolStripMenuItem.Text = "Importar VAG";
             this.importarVAGToolStripMenuItem.Click += new System.EventHandler(this.importarVAGToolStripMenuItem_Click);
             // 
@@ -173,7 +173,7 @@
             // 
             this.extrairTodosToolStripMenuItem.Enabled = false;
             this.extrairTodosToolStripMenuItem.Name = "extrairTodosToolStripMenuItem";
-            this.extrairTodosToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.extrairTodosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.extrairTodosToolStripMenuItem.Text = "Extrair Todos";
             this.extrairTodosToolStripMenuItem.Click += new System.EventHandler(this.extrairTodosToolStripMenuItem_Click);
             // 
@@ -375,19 +375,19 @@
             this.ctx_Iecs.Name = "ctx_Iecs";
             this.ctx_Iecs.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
             this.ctx_Iecs.ShowItemToolTips = false;
-            this.ctx_Iecs.Size = new System.Drawing.Size(181, 70);
+            this.ctx_Iecs.Size = new System.Drawing.Size(146, 48);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(145, 22);
             this.toolStripMenuItem1.Text = "Extrair VAG";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.extrairToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(145, 22);
             this.toolStripMenuItem2.Text = "Importar VAG";
             this.toolStripMenuItem2.Click += new System.EventHandler(this.importarVAGToolStripMenuItem_Click);
             // 
