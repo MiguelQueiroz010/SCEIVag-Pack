@@ -4,7 +4,12 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using static SCEIVag_Pack.Bin;
+using static IOextent;
 using System.Windows.Forms;
+using Naruto_CCS_Text_Editor;
+using System.Drawing;
+using static SCEIVag_Pack.BINContainer;
+using System.Reflection;
 
 namespace SCEIVag_Pack
 {
@@ -277,147 +282,284 @@ namespace SCEIVag_Pack
     }
     public class BINContainer
     {
-        public List<IECS> sceiFiles;
+        internal class SCEI_Entry
+        {
+            internal Int32 Pack_Offset;
+            internal Int32 VAGStream_AftrProg_Offset;
+            internal Int32 PackStream_Length;
+
+            internal Int32 Pack_Size;
+
+            internal Int32 ELFPointer_Offset;
+
+            internal IECS scei_File;
+
+            internal int[] Repeated_Indices;
+
+            internal static SCEI_Entry Read(byte[] input, int offset) => new SCEI_Entry()
+            {
+                Pack_Offset = (int)input.ReadUInt(0, 32),
+                VAGStream_AftrProg_Offset = (int)input.ReadUInt(4, 32),
+                PackStream_Length = (int)input.ReadUInt(8, 32),
+
+                Pack_Size = DefineSizes((int)input.ReadUInt(0, 32), (int)input.ReadUInt(4, 32), (int)input.ReadUInt(8, 32)),
+
+                ELFPointer_Offset = offset
+            };
+
+            internal static Int32 DefineSizes(int poffs, int vafoffs, int pleng)
+            {
+               int Sc_Size = poffs + vafoffs;
+                while (Sc_Size % 0x800 != 0)
+                    Sc_Size++;
+                Sc_Size += pleng;
+                while (Sc_Size % 0x800 != 0)
+                    Sc_Size++;
+                Sc_Size -= poffs;
+
+                return Sc_Size;
+            }
+        }
+
+
         public int fileCount;
         public byte[] Container;
         public byte[] currentContainer;
         public string caminhoELF;
+
+        public ELFO linkedELF;
+        internal List<SCEI_Entry> sCEI_Entries;
+        internal Dictionary<int, int> SCEI_Tables;
+
+
+
         public List<int> IECSoffsets;
         public List<int> ELFIECSoffset = new List<int>();
         public List<int> ELFIECSunk = new List<int>();
         public List<int> ELFIECSVAGS_Size = new List<int>();
         public List<int> IECSsizes;
-        public BINContainer(byte[] input)
+        public BINContainer(byte[] input, byte[] ELF, string elfpath)
         {
             Container = input;
-            #region Contagem e Offsets
-            fileCount = 0;
-            IECSoffsets = new List<int>();
-            for (int i = 0; i < Container.Length; i += 8)
+
+            #region ELF Link
+            linkedELF = new ELFO(ELF, elfpath);
+            sCEI_Entries = new List<SCEI_Entry>();
+
+            #region Set Tables
+            linkedELF.GetXML(out SCEI_Tables);
+            #region Read Scei Entries
+            foreach (var table in SCEI_Tables)
             {
-                if (Encoding.Default.GetString(ReadBlock(Container, (uint)i, 8)) == "IECSsreV")
-                {
-                    IECSoffsets.Add(i);
-                    fileCount++;
+                for(int i =table.Key;i<table.Value;i+=0xC)
+                { 
+                    byte[] Entry = ReadBlock(linkedELF.ELF, (uint)i, 0xC);
+                    var newEntry = SCEI_Entry.Read(Entry, i);
+                    sCEI_Entries.Add(newEntry);
+                   
                 }
+                
+
+                foreach (var entry in sCEI_Entries)
+                {
+                    var repeatedIndices = new List<int>();
+                    for(int k=0;k<sCEI_Entries.Count;k++)
+                    {
+                        if (sCEI_Entries[k].Pack_Offset == entry.Pack_Offset)
+                            repeatedIndices.Add(k);
+                    }
+                    entry.Repeated_Indices = repeatedIndices.ToArray();
+                }
+                
             }
             #endregion
-            #region Separar IECS
-            sceiFiles = new List<IECS>();
-            int k = 0;
-            int size = 0;
-            IECSsizes = new List<int>();
-            foreach (var iecoff in IECSoffsets)
+
+            #region Read SCEIPACKS
+            foreach (SCEI_Entry sc_entry in sCEI_Entries)
             {
-                if (k == IECSoffsets.Count() - 1)
+                if (sc_entry.Pack_Offset.ToString("X2")!="FFFFFFFF")
                 {
-                    size = input.Length - iecoff;
+                    byte[] iecs = ReadBlock(input, (uint)sc_entry.Pack_Offset, (uint)sc_entry.Pack_Size);
+                    var sceiFile = new IECS(iecs);
+                    sc_entry.scei_File = sceiFile;
                 }
-                else
-                {
-                    size = IECSoffsets[k + 1] - iecoff;
-                }
-                byte[] iecs = ReadBlock(input, (uint)iecoff, (uint)size);
-                IECSsizes.Add(iecs.Length);
-                sceiFiles.Add(new IECS(iecs));
-                k++;
             }
+
+            #endregion
+
+            #endregion
+            #endregion
+            #region UNUSED
+            //#region Contagem e Offsets
+            //fileCount = 0;
+            //IECSoffsets = new List<int>();
+            //for (int i = 0; i < Container.Length; i += 8)
+            //{
+            //    if (Encoding.Default.GetString(ReadBlock(Container, (uint)i, 8)) == "IECSsreV")
+            //    {
+            //        IECSoffsets.Add(i);
+            //        fileCount++;
+            //    }
+            //}
+            //#endregion
+            //#region Separar IECS
+            //sceiFiles = new List<IECS>();
+            //int k = 0;
+            //int size = 0;
+            //IECSsizes = new List<int>();
+            //foreach (var iecoff in IECSoffsets)
+            //{
+            //    if (k == IECSoffsets.Count() - 1)
+            //    {
+            //        size = input.Length - iecoff;
+            //    }
+            //    else
+            //    {
+            //        size = IECSoffsets[k + 1] - iecoff;
+            //    }
+            //    byte[] iecs = ReadBlock(input, (uint)iecoff, (uint)size);
+            //    IECSsizes.Add(iecs.Length);
+            //    sceiFiles.Add(new IECS(iecs));
+            //    k++;
+            //}
             #endregion
         }
         public void Rebuild()
         {
-            ELFIECSoffset.Clear();
-            ELFIECSunk.Clear();
-            ELFIECSVAGS_Size.Clear();
-            int[] indicesRemover = { 25, 26 };
+            //ELFIECSoffset.Clear();
+            //ELFIECSunk.Clear();
+            //ELFIECSVAGS_Size.Clear();
+            //int[] indicesRemover = { 25, 26 };
             var container = new List<byte>();
-            for (int i = 0; i < fileCount; i++)
+
+            var saveScei_Pointers = sCEI_Entries.OrderBy(x => x.Pack_Offset);
+
+            int offset = 0;
+            var repeatedSkip = new List<int>();
+            var AlterableEntries = sCEI_Entries.ToList();
+            for (int i = 0; i < AlterableEntries.Count; i++)
             {
-                container.AddRange(sceiFiles[i].Input);
-                currentContainer = sceiFiles[i].Input.ToArray();
-                int unk = BitConverter.ToInt32(currentContainer, 0x1C);
-                int vags_size = BitConverter.ToInt32(currentContainer, 0x20);
-
-                while (container.Count % 0x800 != 0)
-                    container.Add(0xFF);
-
-
-                if (!indicesRemover.Contains(i))
+                if (AlterableEntries[i].Repeated_Indices != null && AlterableEntries[i].Repeated_Indices.Length > 0)
                 {
-                    ELFIECSunk.Add(unk);
-                    ELFIECSVAGS_Size.Add(vags_size);
-                    if (i == 0)
+                    repeatedSkip = new List<int>();
+                    repeatedSkip.AddRange(AlterableEntries[i].Repeated_Indices);
+
+                    if (AlterableEntries[i].Pack_Offset.ToString("X2") != "FFFFFFFF")
                     {
-                        ELFIECSoffset.Add(0);
+                        container.AddRange(AlterableEntries[i].scei_File.Input);
+                        currentContainer = AlterableEntries[i].scei_File.Input.ToArray();
+
+                        AlterableEntries[i].PackStream_Length = AlterableEntries[i].scei_File.VAGS_Size;
+                        AlterableEntries[i].Pack_Offset = offset;
+
+                        while (container.Count % 0x800 != 0)
+                            container.Add(0xFF);
+
+                        Array.Copy(BitConverter.GetBytes(offset), 0, linkedELF.InputElf, AlterableEntries[i].ELFPointer_Offset, 4);
+                        Array.Copy(BitConverter.GetBytes(AlterableEntries[i].PackStream_Length), 0, linkedELF.InputElf, AlterableEntries[i].ELFPointer_Offset + 8, 4);
+                   
+
+                    for (int s = 0; s < repeatedSkip.Count; s++)
+                    {
+                        int index = repeatedSkip[s];
+                        AlterableEntries[index].Pack_Offset = offset;
+                        AlterableEntries[index].PackStream_Length = AlterableEntries[i].scei_File.VAGS_Size;
+                        Array.Copy(BitConverter.GetBytes(offset), 0, linkedELF.InputElf, AlterableEntries[index].ELFPointer_Offset, 4);
+                        Array.Copy(BitConverter.GetBytes(AlterableEntries[index].PackStream_Length), 0, linkedELF.InputElf, AlterableEntries[index].ELFPointer_Offset+8, 4);
                     }
-                    ELFIECSoffset.Add(container.Count);
+                    }
+                }
+                else
+                {
+
+                    if (AlterableEntries[i].Pack_Offset.ToString("X2") != "FFFFFFFF")
+                    {
+                        container.AddRange(AlterableEntries[i].scei_File.Input);
+                        currentContainer = AlterableEntries[i].scei_File.Input.ToArray();
+
+                        AlterableEntries[i].PackStream_Length = AlterableEntries[i].scei_File.VAGS_Size;
+                        AlterableEntries[i].Pack_Offset = offset;
+
+                        while (container.Count % 0x800 != 0)
+                            container.Add(0xFF);
+
+                        Array.Copy(BitConverter.GetBytes(offset), 0, linkedELF.InputElf, AlterableEntries[i].ELFPointer_Offset, 4);
+                        Array.Copy(BitConverter.GetBytes(AlterableEntries[i].PackStream_Length), 0, linkedELF.InputElf, AlterableEntries[i].ELFPointer_Offset + 8, 4);
+                    }
 
                 }
+                if (AlterableEntries[i].Pack_Offset.ToString("X2") != "FFFFFFFF")
+                {
+                    offset += currentContainer.Length;
+                    while (offset % 0x800 != 0)
+                        offset++;
+                    }
             }
             Container = container.ToArray();
 
-            ELFIECSoffset.RemoveAt(23);
-            ELFIECSunk.RemoveAt(23);
-            ELFIECSVAGS_Size.RemoveAt(23);
-            ELFIECSoffset.RemoveAt(24);
-            ELFIECSunk.RemoveAt(24);
-            ELFIECSVAGS_Size.RemoveAt(24);
+            //ELFIECSoffset.RemoveAt(23);
+            //ELFIECSunk.RemoveAt(23);
+            //ELFIECSVAGS_Size.RemoveAt(23);
+            //ELFIECSoffset.RemoveAt(24);
+            //ELFIECSunk.RemoveAt(24);
+            //ELFIECSVAGS_Size.RemoveAt(24);
 
-            TrocarIndices(ELFIECSunk, 4, 3);
-            TrocarIndices(ELFIECSVAGS_Size, 4, 3);
-            TrocarIndices(ELFIECSoffset, 4, 3);
+            //TrocarIndices(ELFIECSunk, 4, 3);
+            //TrocarIndices(ELFIECSVAGS_Size, 4, 3);
+            //TrocarIndices(ELFIECSoffset, 4, 3);
 
-            int[] indices = { 5, 13, 25, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
+            //int[] indices = { 5, 13, 25, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
 
-            int novoValor = -1;
+            //int novoValor = -1;
 
-            foreach (int indice in indices)
-            {
-                AdicionarValorNoIndice(ELFIECSunk, indice, novoValor);
+            //foreach (int indice in indices)
+            //{
+            //    AdicionarValorNoIndice(ELFIECSunk, indice, novoValor);
 
-                AdicionarValorNoIndice(ELFIECSVAGS_Size, indice, novoValor);
+            //    AdicionarValorNoIndice(ELFIECSVAGS_Size, indice, novoValor);
 
-                AdicionarValorNoIndice(ELFIECSoffset, indice, novoValor);
-            }
+            //    AdicionarValorNoIndice(ELFIECSoffset, indice, novoValor);
+            //}
 
-            ELFIECSoffset.Insert(44, ELFIECSoffset[6]);
-            ELFIECSunk.Insert(44, ELFIECSunk[6]);
-            ELFIECSVAGS_Size.Insert(44, ELFIECSVAGS_Size[6]);
+            //ELFIECSoffset.Insert(44, ELFIECSoffset[6]);
+            //ELFIECSunk.Insert(44, ELFIECSunk[6]);
+            //ELFIECSVAGS_Size.Insert(44, ELFIECSVAGS_Size[6]);
 
-            for (int i = 6; i < 10; i++)
-            {
-                ELFIECSoffset.Insert(i + 46, ELFIECSoffset[i]);
-                ELFIECSVAGS_Size.Insert(i + 46, ELFIECSVAGS_Size[i]);
-                ELFIECSunk.Insert(i + 46, ELFIECSunk[i]);
-            }
+            //for (int i = 6; i < 10; i++)
+            //{
+            //    ELFIECSoffset.Insert(i + 46, ELFIECSoffset[i]);
+            //    ELFIECSVAGS_Size.Insert(i + 46, ELFIECSVAGS_Size[i]);
+            //    ELFIECSunk.Insert(i + 46, ELFIECSunk[i]);
+            //}
 
-            ELFIECSoffset.Insert(56, ELFIECSoffset[19]);
-            ELFIECSunk.Insert(56, ELFIECSunk[19]);
-            ELFIECSVAGS_Size.Insert(56, ELFIECSVAGS_Size[19]);
+            //ELFIECSoffset.Insert(56, ELFIECSoffset[19]);
+            //ELFIECSunk.Insert(56, ELFIECSunk[19]);
+            //ELFIECSVAGS_Size.Insert(56, ELFIECSVAGS_Size[19]);
 
-            for (int i = 39; i < 44; i++)
-            {
-                ELFIECSoffset.Insert(i + 18, ELFIECSoffset[i]);
-                ELFIECSVAGS_Size.Insert(i + 18, ELFIECSVAGS_Size[i]);
-                ELFIECSunk.Insert(i + 18, ELFIECSunk[i]);
-            }
+            //for (int i = 39; i < 44; i++)
+            //{
+            //    ELFIECSoffset.Insert(i + 18, ELFIECSoffset[i]);
+            //    ELFIECSVAGS_Size.Insert(i + 18, ELFIECSVAGS_Size[i]);
+            //    ELFIECSunk.Insert(i + 18, ELFIECSunk[i]);
+            //}
 
 
-            ELFIECSoffset.Insert(78, ELFIECSoffset[62]);
-            ELFIECSunk.Insert(78, ELFIECSunk[62]);
-            ELFIECSVAGS_Size.Insert(78, ELFIECSVAGS_Size[62]);
+            //ELFIECSoffset.Insert(78, ELFIECSoffset[62]);
+            //ELFIECSunk.Insert(78, ELFIECSunk[62]);
+            //ELFIECSVAGS_Size.Insert(78, ELFIECSVAGS_Size[62]);
 
-            ELFIECSoffset.Insert(79, -1);
-            ELFIECSunk.Insert(79, -1);
-            ELFIECSVAGS_Size.Insert(79, -1);
+            //ELFIECSoffset.Insert(79, -1);
+            //ELFIECSunk.Insert(79, -1);
+            //ELFIECSVAGS_Size.Insert(79, -1);
 
-            ELFIECSoffset.Insert(80, ELFIECSoffset[68]);
-            ELFIECSunk.Insert(80, ELFIECSunk[68]);
-            ELFIECSVAGS_Size.Insert(80, ELFIECSVAGS_Size[68]);
+            //ELFIECSoffset.Insert(80, ELFIECSoffset[68]);
+            //ELFIECSunk.Insert(80, ELFIECSunk[68]);
+            //ELFIECSVAGS_Size.Insert(80, ELFIECSVAGS_Size[68]);
 
-            ELFIECSoffset.Insert(93, -1);
-            ELFIECSunk.Insert(93, -1);
-            ELFIECSVAGS_Size.Insert(93, -1);
+            //ELFIECSoffset.Insert(93, -1);
+            //ELFIECSunk.Insert(93, -1);
+            //ELFIECSVAGS_Size.Insert(93, -1);
+
         }
 
         private void TrocarIndices(List<int> lista, int indiceA, int indiceB)

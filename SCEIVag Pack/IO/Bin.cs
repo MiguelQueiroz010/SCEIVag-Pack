@@ -21,6 +21,44 @@ namespace SCEIVag_Pack
                 return bytes;
             
         }
+        public static int IndexOff(this byte[] arrayToSearchThrough, byte[] patternToFind, int index = 0)
+        {
+            if (patternToFind.Length > arrayToSearchThrough.Length)
+                return -1;
+            for (int i = index; i < arrayToSearchThrough.Length - patternToFind.Length; i++)
+            {
+                bool found = true;
+                for (int j = 0; j < patternToFind.Length; j++)
+                {
+                    if (arrayToSearchThrough[i + j] != patternToFind[j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+                if (found)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        public static List<int> AllIndexesOf(this byte[] value, uint str)
+        {
+            List<int> indexes = new List<int>();
+            for (int index = 0; ;)
+            {
+                int idx = value.IndexOff(BitConverter.GetBytes(str), index);
+                if (idx == -1)
+                    return indexes;
+                else
+                {
+                    indexes.Add(idx);
+                    index = idx + 1;
+                }
+            }
+            return indexes;
+        }
         public static byte[] ReadSequence(byte[] file, int offset, string breaker)
         {
             var sequence = new List<byte>();
@@ -37,6 +75,49 @@ namespace SCEIVag_Pack
                 sequence.Add(file[i + 1]);
             }
             return sequence.ToArray();
+        }
+        public static byte[] ReadBrokeString(byte[] file, int offset, int breakeroff)
+        {
+            var sequence = new List<byte>();
+            var memory = new MemoryStream(file);
+            var reader = new BinaryReader(memory);
+            reader.BaseStream.Position = offset;
+            while (reader.BaseStream.Position != breakeroff)
+            {
+                sequence.Add(reader.ReadByte());
+            }
+            reader.Close();
+            memory.Close();
+            return sequence.ToArray();
+        }
+        public static byte[] ReadStrBlock(byte[] file, int offset)
+        {
+            var k = new List<byte>();
+            int offs = offset;
+            while (file[offs] != 0)//Catch the characters
+            {
+                k.Add(file[offs]);
+                offs++;
+            }
+            while (file[offs] == 0)//Counts remaining free space
+            {
+                k.Add(0);
+                offs++;
+            }
+
+            return k.ToArray();
+        }
+        public static byte[] ReadString(byte[] file, int offset)
+        {
+            var k = new List<byte>();
+            int offs = offset;
+            while (file[offs] != 0)//Catch the characters
+            {
+                k.Add(file[offs]);
+                offs++;
+            }
+
+            return k.ToArray();
         }
         public static ulong ReadUInt(byte[] s, int offset, Int type)
         {
@@ -59,6 +140,65 @@ namespace SCEIVag_Pack
             reader.Close();
             memory.Close();
             return retur;
+        }
+        public static int GetFreeSpace(byte[] input, int minimum, int start = 0, int end = 0)
+        {
+            var spacefree = 0;
+            minimum += 2;
+            if (end == 0)
+                end = input.Length;
+            for (int i = start; spacefree < minimum && i < end;)
+            {
+                byte[] find = ReadBlock(input, (uint)i, (uint)minimum);
+                if (find.All(x => x == 0))
+                    spacefree = i;
+                i++;
+            }
+            spacefree++;
+            if (spacefree == 1)
+                spacefree = -1;
+            return spacefree;
+        }
+        public static int GetFreeSpace(byte[] input, int minimum, Dictionary<int, int> FreeSpaces, int padd = 0)
+        {
+            var spacefree = 0;
+            minimum += 2;
+            foreach (var table in FreeSpaces)
+            {
+                int start = table.Key;
+                while (start % padd != 0)
+                    start++;
+                for (int i = start; spacefree < minimum && i < table.Value;)
+                {
+                    byte[] find = ReadBlock(input, (uint)i, (uint)minimum);
+                    if (find.All(x => x == 0))
+                    {
+                        if (input[i - 1] == 0)
+                        {
+                            spacefree = i;
+                            return spacefree;
+                        }
+                        else
+                        {
+                            i += padd;
+                        }
+                    }
+                    else
+                    {
+                        i += padd;
+                    }
+                }
+            }
+            return -1;
+        }
+        public static void CleanStrSpace(byte[] input, int offsetstart)
+        {
+            int i = offsetstart;
+            while (input[i] != 0)
+            {
+                input[i] = 0;
+                i++;
+            }
         }
         public enum Int
         {

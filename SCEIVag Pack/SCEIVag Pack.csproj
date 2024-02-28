@@ -63,6 +63,7 @@
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
     <Compile Include="IO\Bin.cs" />
+    <Compile Include="IO\ELFO.cs" />
     <Compile Include="IO\IECS.cs" />
     <Compile Include="IO\IOextent.cs" />
     <Compile Include="Forms\ListadeIECS.cs">

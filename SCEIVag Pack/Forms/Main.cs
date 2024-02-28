@@ -35,13 +35,13 @@ namespace SCEIVag_Pack
         {
             var entries = new Dictionary<string, string[]>();
             int ind = 0;
-            foreach (var scei in container.sceiFiles)
+            foreach (var scei in container.sCEI_Entries)
             {
                 string key = "IECS" + ind.ToString();
                 var nameslist = new List<string>();
 
                 int vagc = 0;
-                foreach (var vag in scei.vagi.Vdata)
+                foreach (var vag in scei.scei_File.vagi.Vdata)
                 {
                     string vagname = "stream" + vagc.ToString();
                     if (ext)
@@ -200,7 +200,7 @@ namespace SCEIVag_Pack
                     byte[] replace = File.ReadAllBytes(opn.FileName);
                     if (opn.FilterIndex == 2)
                     {
-                        int orig_Freq = container.sceiFiles[listadeIECS.listView1.SelectedIndices[0]].vagi.Vdata[listView1.SelectedIndices[0]].Frequency;
+                        int orig_Freq = container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency;
                         int Freq = (int)replace.ReadUInt(0x10, 32, true);
                         freq = Freq;
                         freqdif = orig_Freq != Freq;
@@ -208,7 +208,7 @@ namespace SCEIVag_Pack
                         {
                             MessageBox.Show("A frequência do áudio importado é: " + Freq.ToString() + "Hz"
                                 + "\nSó que o áudio original tem frequência de: " + orig_Freq.ToString() + "Hz", "Opa, pera aí!");
-                            container.sceiFiles[listadeIECS.listView1.SelectedIndices[0]].vagi.Vdata[listView1.SelectedIndices[0]].Frequency = Freq;
+                            container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency = Freq;
                         }
 
                         if (Encoding.Default.GetString(replace.ReadBytes(0, 3)) == "VAG")
@@ -219,14 +219,14 @@ namespace SCEIVag_Pack
                     #region Wave Format Parse
                     if (opn.FilterIndex == 1)
                     {
-                        replace = ADPCM.FromPCMMono(ADPCM.WAVtoPCM(replace, container.sceiFiles[listadeIECS.listView1.SelectedIndices[0]].vagi.Vdata[listView1.SelectedIndices[0]].Frequency, out freqdif, out freq));
+                        replace = ADPCM.FromPCMMono(ADPCM.WAVtoPCM(replace, container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency, out freqdif, out freq));
                     }
                     #endregion
                     
                     #endregion
-                    container.sceiFiles[listadeIECS.listView1.SelectedIndices[0]].vagi.Vdata[listView1.SelectedIndices[0]].StreamVAG = replace;
+                    container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].StreamVAG = replace;
                     
-                    container.sceiFiles[listadeIECS.listView1.SelectedIndices[0]].RebuildIECS();
+                    container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.RebuildIECS();
                     container.Rebuild();
                     listView1.SelectedItems[0].ForeColor = Color.Red;
                     listadeIECS.listView1.SelectedItems[0].ForeColor = Color.Red;
@@ -268,8 +268,10 @@ namespace SCEIVag_Pack
                 if (container != null)
                 {
                     container.Rebuild();
-                    container.SaveToELF(container.caminhoELF);
+                    
+                    //container.SaveToELF(container.caminhoELF);
                     File.WriteAllBytes(filename, container.Container);
+                    File.WriteAllBytes(container.caminhoELF, container.linkedELF.GetEdited());
                 }
                 else
                 {
@@ -642,7 +644,8 @@ namespace SCEIVag_Pack
                         {
                             fecharToolStripMenuItem1.Enabled = true;
                             #region Abrir arquivo
-                            container = new BINContainer(File.ReadAllBytes(filename));
+                            container = new BINContainer(File.ReadAllBytes(filename), 
+                                File.ReadAllBytes(openELF.FileName), openELF.FileName);
                             container.caminhoELF = openELF.FileName;
                             #endregion
                             #region Adicionar na lista de IECS
@@ -674,7 +677,8 @@ namespace SCEIVag_Pack
                             filename = open.FileName;
                             fecharToolStripMenuItem1.Enabled = true;
                             #region Abrir arquivo
-                            container = new BINContainer(File.ReadAllBytes(filename));
+                            container = new BINContainer(File.ReadAllBytes(filename),
+                                File.ReadAllBytes(openELF.FileName), openELF.FileName);
                             container.caminhoELF = openELF.FileName;
                             #endregion
                             #region Adicionar na lista de IECS

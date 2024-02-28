@@ -25,20 +25,32 @@ namespace SCEIVag_Pack
             f1.extrairTudoToolStripMenuItem.Enabled = true;
             
             int k = 0;
-            foreach(var IECS in f1.container.IECSsizes)
+            foreach(var IECS in f1.container.sCEI_Entries)
             {
-                ListViewItem item = new ListViewItem(k.ToString());
+                if (IECS.Pack_Offset.ToString("X2") != "FFFFFFFF")
+                {
+                    ListViewItem item = new ListViewItem(k.ToString());
 
-                string sceiname = "iecs" + k.ToString() + ".bhd";
+                    string sceiname = "iecs" + k.ToString() + ".bhd";
 
-                if(f1.FileList!=null)
-                    sceiname = f1.FileList.ElementAt(k).Key;
+                    if (f1.FileList != null)
+                        sceiname = f1.FileList.ElementAt(k).Key;
 
-                item.SubItems.Add(sceiname);
+                    item.SubItems.Add(sceiname);
 
-                item.SubItems.Add(IECS.ToString());
-                listView1.Items.Add(item);
-                k++;
+                    item.SubItems.Add(IECS.Pack_Size.ToString());
+                    listView1.Items.Add(item);
+                    k++;
+                }
+                else
+                {
+                    ListViewItem item = new ListViewItem(k.ToString());
+                    item.ForeColor = Color.Red;
+                    string sceiname = "ENTRADA VAZIA";
+                    item.SubItems.Add(sceiname);
+                    listView1.Items.Add(item);
+                    k++;
+                }
             }
         }
         private void ListadeIECS_Load(object sender, EventArgs e)
@@ -49,20 +61,23 @@ namespace SCEIVag_Pack
         {
             if (listView1.SelectedIndices.Count == 1)
             {
-                f1.extrairuniccon.Enabled = true;
-                if (f1.sceifile != null)
+                if (listView1.SelectedItems[0].SubItems[1].Text != "ENTRADA VAZIA")
                 {
-                    f1.sceifile = null;
-                    f1.ShowHide();
+                    f1.extrairuniccon.Enabled = true;
+                    if (f1.sceifile != null)
+                    {
+                        f1.sceifile = null;
+                        f1.ShowHide();
+                    }
+                    f1.listView1.Items.Clear();
+                    f1.sceifile = f1.container.sCEI_Entries[listView1.SelectedIndices[0]].scei_File;
+                    #region Acionar Labels
+                    f1.filenamelabel.Text = "Nome: " + Path.GetFileName(listView1.SelectedItems[0].SubItems[1].Text);
+                    f1.verslabel.Text = "Pack Versão: " + f1.sceifile.version.Versão.ToString();
+                    f1.vagnlabel.Text = "Número de Áudios: " + f1.sceifile.vagi.VAGcount.ToString();
+                    #endregion
+                    f1.ListInsert();
                 }
-                f1.listView1.Items.Clear();
-                f1.sceifile = f1.container.sceiFiles[listView1.SelectedIndices[0]];
-                #region Acionar Labels
-                f1.filenamelabel.Text = "Nome: " + Path.GetFileName(listView1.SelectedItems[0].SubItems[1].Text);
-                f1.verslabel.Text = "Pack Versão: " + f1.sceifile.version.Versão.ToString();
-                f1.vagnlabel.Text = "Número de Áudios: " + f1.sceifile.vagi.VAGcount.ToString();
-                #endregion
-                f1.ListInsert();
             }
             else
             {
