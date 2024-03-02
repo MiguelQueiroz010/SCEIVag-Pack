@@ -66,6 +66,9 @@
             this.ctx_Iecs = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.tipoDeVAGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bigEndianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.littleEndianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.ctx_Iecs.SuspendLayout();
@@ -101,14 +104,14 @@
             // abrirBINToolStripMenuItem
             // 
             this.abrirBINToolStripMenuItem.Name = "abrirBINToolStripMenuItem";
-            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.abrirBINToolStripMenuItem.Text = "Abrir BINContainer";
             this.abrirBINToolStripMenuItem.Click += new System.EventHandler(this.abrirBINToolStripMenuItem_Click);
             // 
             // abrirIECToolStripMenuItem
             // 
             this.abrirIECToolStripMenuItem.Name = "abrirIECToolStripMenuItem";
-            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.abrirIECToolStripMenuItem.Text = "Abrir IEC";
             this.abrirIECToolStripMenuItem.Click += new System.EventHandler(this.abrirIECToolStripMenuItem_Click);
             // 
@@ -116,7 +119,7 @@
             // 
             this.salvarToolStripMenuItem.Enabled = false;
             this.salvarToolStripMenuItem.Name = "salvarToolStripMenuItem";
-            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.salvarToolStripMenuItem.Text = "Salvar";
             this.salvarToolStripMenuItem.Click += new System.EventHandler(this.salvarToolStripMenuItem_Click);
             // 
@@ -124,7 +127,7 @@
             // 
             this.salvarComoToolStripMenuItem.Enabled = false;
             this.salvarComoToolStripMenuItem.Name = "salvarComoToolStripMenuItem";
-            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.salvarComoToolStripMenuItem.Text = "Salvar Como";
             this.salvarComoToolStripMenuItem.Click += new System.EventHandler(this.salvarComoToolStripMenuItem_Click);
             // 
@@ -132,14 +135,14 @@
             // 
             this.fecharToolStripMenuItem.Enabled = false;
             this.fecharToolStripMenuItem.Name = "fecharToolStripMenuItem";
-            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.fecharToolStripMenuItem.Text = "Fechar";
             this.fecharToolStripMenuItem.Click += new System.EventHandler(this.fecharToolStripMenuItem_Click);
             // 
             // sairToolStripMenuItem
             // 
             this.sairToolStripMenuItem.Name = "sairToolStripMenuItem";
-            this.sairToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sairToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.sairToolStripMenuItem.Text = "Sair";
             this.sairToolStripMenuItem.Click += new System.EventHandler(this.sairToolStripMenuItem_Click);
             // 
@@ -148,7 +151,8 @@
             this.iECToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.extrairToolStripMenuItem,
             this.importarVAGToolStripMenuItem,
-            this.extrairTodosToolStripMenuItem});
+            this.extrairTodosToolStripMenuItem,
+            this.tipoDeVAGToolStripMenuItem});
             this.iECToolStripMenuItem.Name = "iECToolStripMenuItem";
             this.iECToolStripMenuItem.Size = new System.Drawing.Size(42, 20);
             this.iECToolStripMenuItem.Text = "SCEI";
@@ -222,9 +226,11 @@
             // 
             // abrirListaDeArquivosToolStripMenuItem
             // 
+            this.abrirListaDeArquivosToolStripMenuItem.Enabled = false;
             this.abrirListaDeArquivosToolStripMenuItem.Name = "abrirListaDeArquivosToolStripMenuItem";
             this.abrirListaDeArquivosToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
             this.abrirListaDeArquivosToolStripMenuItem.Text = "Abrir Lista de Arquivos";
+            this.abrirListaDeArquivosToolStripMenuItem.Visible = false;
             this.abrirListaDeArquivosToolStripMenuItem.Click += new System.EventHandler(this.abrirListaDeArquivosToolStripMenuItem_Click);
             // 
             // sobreToolStripMenuItem
@@ -249,7 +255,7 @@
             this.ativadoToolStripMenuItem.Checked = true;
             this.ativadoToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ativadoToolStripMenuItem.Name = "ativadoToolStripMenuItem";
-            this.ativadoToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
+            this.ativadoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.ativadoToolStripMenuItem.Text = "Ativado";
             this.ativadoToolStripMenuItem.Click += new System.EventHandler(this.ativadoToolStripMenuItem_Click);
             // 
@@ -391,7 +397,32 @@
             this.toolStripMenuItem2.Text = "Importar VAG";
             this.toolStripMenuItem2.Click += new System.EventHandler(this.importarVAGToolStripMenuItem_Click);
             // 
-            // Form1
+            // tipoDeVAGToolStripMenuItem
+            // 
+            this.tipoDeVAGToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.bigEndianToolStripMenuItem,
+            this.littleEndianToolStripMenuItem});
+            this.tipoDeVAGToolStripMenuItem.Name = "tipoDeVAGToolStripMenuItem";
+            this.tipoDeVAGToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.tipoDeVAGToolStripMenuItem.Text = "Tipo de VAG";
+            // 
+            // bigEndianToolStripMenuItem
+            // 
+            this.bigEndianToolStripMenuItem.Checked = true;
+            this.bigEndianToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.bigEndianToolStripMenuItem.Name = "bigEndianToolStripMenuItem";
+            this.bigEndianToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.bigEndianToolStripMenuItem.Text = "Big Endian";
+            this.bigEndianToolStripMenuItem.Click += new System.EventHandler(this.bigEndianToolStripMenuItem_Click);
+            // 
+            // littleEndianToolStripMenuItem
+            // 
+            this.littleEndianToolStripMenuItem.Name = "littleEndianToolStripMenuItem";
+            this.littleEndianToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.littleEndianToolStripMenuItem.Text = "Little Endian";
+            this.littleEndianToolStripMenuItem.Click += new System.EventHandler(this.littleEndianToolStripMenuItem_Click);
+            // 
+            // Main
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -410,7 +441,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
-            this.Name = "Form1";
+            this.Name = "Main";
             this.Text = "SCEI Audio Pack Tool";
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Form1_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Form1_DragEnter);
@@ -462,6 +493,9 @@
         public System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         public System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
         private System.Windows.Forms.ContextMenuStrip ctx_Iecs;
+        private System.Windows.Forms.ToolStripMenuItem tipoDeVAGToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem bigEndianToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem littleEndianToolStripMenuItem;
     }
 }
 

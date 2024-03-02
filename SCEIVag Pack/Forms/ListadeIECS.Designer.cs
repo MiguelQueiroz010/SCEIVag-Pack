@@ -87,7 +87,7 @@
             this.quantlab.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.quantlab.Location = new System.Drawing.Point(243, 281);
             this.quantlab.Name = "quantlab";
-            this.quantlab.Size = new System.Drawing.Size(57, 16);
+            this.quantlab.Size = new System.Drawing.Size(56, 16);
             this.quantlab.TabIndex = 2;
             this.quantlab.Text = "Quantia:";
             // 
@@ -99,7 +99,7 @@
             this.filenamlab.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.filenamlab.Location = new System.Drawing.Point(223, 16);
             this.filenamlab.Name = "filenamlab";
-            this.filenamlab.Size = new System.Drawing.Size(59, 16);
+            this.filenamlab.Size = new System.Drawing.Size(58, 16);
             this.filenamlab.TabIndex = 3;
             this.filenamlab.Text = "filename";
             // 

@@ -44,12 +44,11 @@ namespace SCEIVag_Pack
                 }
                 else
                 {
-                    ListViewItem item = new ListViewItem(k.ToString());
+                    ListViewItem item = new ListViewItem("");
                     item.ForeColor = Color.Red;
                     string sceiname = "ENTRADA VAZIA";
                     item.SubItems.Add(sceiname);
                     listView1.Items.Add(item);
-                    k++;
                 }
             }
         }

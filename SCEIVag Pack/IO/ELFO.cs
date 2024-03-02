@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using static SCEIVag_Pack.Bin;
 using System.Diagnostics;
 
-namespace Naruto_CCS_Text_Editor
+namespace SCEIVag_Pack
 {
     public class MWo3
     {
@@ -109,12 +109,13 @@ namespace Naruto_CCS_Text_Editor
             InternalName = Path.GetFileName(path);
 
         }
-        public void GetXML(out Dictionary<int, int> tables)
+        public void GetXML(out Dictionary<int, int> tables, out Dictionary<string, string[]> filenames)
         {
             var tablesinp = new Dictionary<int, int>();
             var tablesnam = new List<string>();
+            var dict = new Dictionary<string, string[]>();
             #region Leitor XML
-            Stream xml = File.OpenText($"{InternalName}.xml").BaseStream;
+            Stream xml = File.OpenText($"elfbase.xml").BaseStream;
             XmlDocument reader = new XmlDocument();
             reader.Load(xml); //Carregando o arquivo
 
@@ -125,7 +126,7 @@ namespace Naruto_CCS_Text_Editor
             {
                 foreach (XmlNode node in xn.ChildNodes)
                 {
-                    switch (node.Name)
+                    switch (node.Name.ToLower())
                     {
                         case "virtual":
                             virtualmem = Convert.ToBoolean(node.InnerText);
@@ -147,11 +148,29 @@ namespace Naruto_CCS_Text_Editor
                                 tablesinp.Add(start, end);
                             tablec++;//Add count table
                             break;
+                        case "filelist":
+                            
+                            foreach (XmlElement pointCoord in node.SelectNodes("Pasta"))
+                            {
+                                if (pointCoord != null)
+                                {
+                                    string[] files = pointCoord.InnerText.Split(new string[] { "\r\n", "" }, StringSplitOptions.RemoveEmptyEntries);
+                                    dict.Add(pointCoord.Attributes["name"].Value, files);
+                                }
+                            }
+                            //foreach (XmlNode pasta in xnList)
+                            //{
+                            //    string[] files = pasta.InnerText.Split(new string[] { "\r\n", "" }, StringSplitOptions.RemoveEmptyEntries);
+                            //    dict.Add(xn.Attributes["name"].Value, files);
+                            //}
+
+                            break;
                     }
                 }
             }
             #endregion  
             tables = tablesinp;
+            filenames = dict;
         }
         public static bool CheckSTR(byte[] input, int position)
         {

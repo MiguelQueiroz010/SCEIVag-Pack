@@ -20,6 +20,8 @@ namespace SCEIVag_Pack
         public Graphics paneSave;
         public string caminhoELF;
 
+        public bool VAGEndianess_Big = true;
+
         public SoundPlayer player;
 
         public string filename;
@@ -28,14 +30,13 @@ namespace SCEIVag_Pack
         public Main()
         {
             InitializeComponent();
-            //ReadXML(@"C:\Users\Raiden\Desktop\out\filelisttest.xml");
         }
         #region Funções
         public Dictionary<string, string[]> GetEntries(bool wav, bool ext = true, string altext = "SYSTEM")
         {
             var entries = new Dictionary<string, string[]>();
             int ind = 0;
-            foreach (var scei in container.sCEI_Entries)
+            foreach (var scei in container.sCEI_Entries.Where(x => x.Pack_Offset.ToString("X2") != "FFFFFFFF").ToArray())
             {
                 string key = "IECS" + ind.ToString();
                 var nameslist = new List<string>();
@@ -88,7 +89,7 @@ namespace SCEIVag_Pack
         }
         public Stream GetWav()
         {
-            byte[] vag = sceifile.StreamData.ReadBytes(sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamOffset, 
+            byte[] vag = sceifile.StreamData.ReadBytes(sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamOffset,
                 sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamSize);
             byte[] PCM = ADPCM.ToPCMMono(vag, vag.Length);
             byte[] wav = ADPCM.PCMtoWAV(PCM, sceifile.vagi.Vdata[listView1.SelectedIndices[0]].Frequency, 1);
@@ -134,8 +135,9 @@ namespace SCEIVag_Pack
                 var item = new ListViewItem(i.ToString());
                 string vagname = "stream" + i.ToString() + ".vag";
 
+
                 if (FileList != null)
-                    vagname = FileList.ElementAt(listadeIECS.listView1.SelectedItems[0].Index).Value[i];
+                    vagname = FileList.ElementAt(Convert.ToInt32(listadeIECS.listView1.SelectedItems[0].SubItems[0].Text)).Value[i];
 
                 item.SubItems.Add(vagname);
                 item.SubItems.Add(Convert.ToString(vgs.Frequency) + "Hz");
@@ -167,10 +169,11 @@ namespace SCEIVag_Pack
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Wave Audio(*.wav)|*.wav|PS2 ADPCM VAG(*.vag)|*.vag";
             save.Title = "Escolha onde salvar o áudio VAG selecionado";
-            save.FileName = Path.GetFileNameWithoutExtension(listView1.SelectedItems[0].SubItems[1].Text);
+            var file = Path.GetFileNameWithoutExtension(listView1.SelectedItems[0].SubItems[1].Text);
+            save.FileName = file;
             if (save.ShowDialog() == DialogResult.OK)
             {
-                byte[] VAG = sceifile.StreamData.ReadBytes(sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamOffset, 
+                byte[] VAG = sceifile.StreamData.ReadBytes(sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamOffset,
                     sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamSize);
                 if (save.FilterIndex == 1)
                 {
@@ -178,7 +181,38 @@ namespace SCEIVag_Pack
                 }
                 else
                 {
-                    File.WriteAllBytes(save.FileName, VAG);
+                    var VAGbits = new List<byte>();
+                    var VAGStream = new List<byte>();
+
+                    if (VAGEndianess_Big)
+                    {
+                        VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20).Reverse().ToArray());
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamSize).Reverse().ToArray());
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)sceifile.vagi.Vdata[listView1.SelectedIndices[0]].Frequency).Reverse().ToArray());
+                    }
+                    else
+                    {
+                        VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamSize));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)sceifile.vagi.Vdata[listView1.SelectedIndices[0]].Frequency));
+                    }
+                    VAGbits.AddRange(BitConverter.GetBytes((UInt64)0));
+                    VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                    var name = new byte[0x10];
+                    VAGbits.AddRange(name);
+
+                    VAGStream.AddRange(VAG);
+
+                    while (VAGStream.Count < sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamSize)
+                        VAGStream.Add(0);
+
+                    VAGbits.AddRange(VAGStream.ToArray());
+
+                    File.WriteAllBytes(save.FileName, VAGbits.ToArray());
                 }
                 MessageBox.Show("Concluído!\nExtraído para: " + Path.GetDirectoryName(save.FileName) + @"\", "Extração", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -200,32 +234,31 @@ namespace SCEIVag_Pack
                     byte[] replace = File.ReadAllBytes(opn.FileName);
                     if (opn.FilterIndex == 2)
                     {
-                        int orig_Freq = container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency;
-                        int Freq = (int)replace.ReadUInt(0x10, 32, true);
-                        freq = Freq;
-                        freqdif = orig_Freq != Freq;
-                        if (freqdif)
-                        {
-                            MessageBox.Show("A frequência do áudio importado é: " + Freq.ToString() + "Hz"
-                                + "\nSó que o áudio original tem frequência de: " + orig_Freq.ToString() + "Hz", "Opa, pera aí!");
-                            container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency = Freq;
-                        }
-
                         if (Encoding.Default.GetString(replace.ReadBytes(0, 3)) == "VAG")
                         {
+                            int orig_Freq = container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency;
+                            int Freq = (int)replace.ReadUInt(0x10, 32, VAGEndianess_Big);
+                            freq = Freq;
+                            freqdif = orig_Freq != Freq;
+                            if (freqdif)
+                            {
+                                MessageBox.Show("A frequência do áudio importado é: " + Freq.ToString() + "Hz"
+                                    + "\nSó que o áudio original tem frequência de: " + orig_Freq.ToString() + "Hz", "Opa, pera aí!");
+                                container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency = Freq;
+                            }
                             replace = replace.ReadBytes(0x30, replace.Length - 0x30);
                         }
                     }
                     #region Wave Format Parse
                     if (opn.FilterIndex == 1)
                     {
-                        replace = ADPCM.FromPCMMono(ADPCM.WAVtoPCM(replace, container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].Frequency, out freqdif, out freq));
+                        //replace = PS2VagTool.Vag_Functions.SonyVag.Encode(replace, false);
                     }
                     #endregion
-                    
+
                     #endregion
                     container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.vagi.Vdata[listView1.SelectedIndices[0]].StreamVAG = replace;
-                    
+
                     container.sCEI_Entries[listadeIECS.listView1.SelectedIndices[0]].scei_File.RebuildIECS();
                     container.Rebuild();
                     listView1.SelectedItems[0].ForeColor = Color.Red;
@@ -268,7 +301,7 @@ namespace SCEIVag_Pack
                 if (container != null)
                 {
                     container.Rebuild();
-                    
+
                     //container.SaveToELF(container.caminhoELF);
                     File.WriteAllBytes(filename, container.Container);
                     File.WriteAllBytes(container.caminhoELF, container.linkedELF.GetEdited());
@@ -302,20 +335,13 @@ namespace SCEIVag_Pack
 
                 if (container != null)
                 {
-                    //if(container.caminhoELF!=null)
-                    //{
-                    //    var saveElf = new SaveFileDialog();
-                    //    saveElf.FileName = Path.GetFileName(container.caminhoELF);
-                    //    saveElf.Filter = "ExecutableandLinkableFormat(*.elf)|.elf";
-                    //    if(saveElf.ShowDialog()==DialogResult.OK)
-                    //    {
-                            
-                    //        container.SaveToELF(saveElf.FileName);
-                            
-                    //    }
-                    //}
                     container.Rebuild();
                     File.WriteAllBytes(save.FileName, container.Container);
+                    //Save Elf
+                    save.FileName = Path.GetFileNameWithoutExtension(container.caminhoELF);
+                    save.Filter = "ExecutableandLinkableFormat(*.*)|*.*)";
+                    if(save.ShowDialog()==DialogResult.OK)
+                        File.WriteAllBytes(save.FileName, container.linkedELF.GetEdited());
                 }
                 else
                 {
@@ -339,8 +365,9 @@ namespace SCEIVag_Pack
             if (save.ShowDialog() == DialogResult.OK)
             {
                 int index = listadeIECS.listView1.SelectedIndices[0];
-                byte[] BHD = container.Container.ReadBytes(container.IECSoffsets[index],
-                    container.IECSsizes[index]);
+                int Entryindex = Convert.ToInt32(listadeIECS.listView1.Items[index].SubItems[0].Text);
+                byte[] BHD = container.Container.ReadBytes(container.sCEI_Entries[Entryindex].Pack_Offset,
+                    container.sCEI_Entries[Entryindex].Pack_Size);
                 File.WriteAllBytes(save.FileName, BHD);
                 MessageBox.Show("Concluído!\nExtraído para: " + Path.GetDirectoryName(save.FileName) + @"\", "Extração", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -377,10 +404,41 @@ namespace SCEIVag_Pack
                 {
 
 
-                    byte[] VAG = sceifile.StreamData.ReadBytes(vag.StreamOffset, 
+                    byte[] VAG = sceifile.StreamData.ReadBytes(vag.StreamOffset,
                         vag.StreamSize);
 
                     string name = listView1.Items[i].SubItems[1].Text.Substring(0, listView1.Items[i].SubItems[1].Text.Length - 4);
+
+                    var VAGbits = new List<byte>();
+                    var VAGStream = new List<byte>();
+
+                    if (VAGEndianess_Big)
+                    {
+                        VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20).Reverse().ToArray());
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.StreamSize).Reverse().ToArray());
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.Frequency).Reverse().ToArray());
+                    }
+                    else
+                    {
+                        VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.StreamSize));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.Frequency));
+                    }
+                    VAGbits.AddRange(BitConverter.GetBytes((UInt64)0));
+                    VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                    var namex = new byte[0x10];
+                    VAGbits.AddRange(namex);
+
+                    VAGStream.AddRange(VAG);
+
+                    while (VAGStream.Count < sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamSize)
+                        VAGStream.Add(0);
+
+                    VAGbits.AddRange(VAGStream.ToArray());
 
                     if (exportwav)
                     {
@@ -388,14 +446,15 @@ namespace SCEIVag_Pack
                     }
                     else
                     {
-                        File.WriteAllBytes(folder + @"\" + name + ".wav", VAG);
+                        File.WriteAllBytes(folder + @"\" + name + ".vag", VAGbits.ToArray());
                     }
 
                     i++;
                 }
-
-                byte[] IEC = container.Container.ReadBytes(container.IECSoffsets[listadeIECS.listView1.SelectedIndices[0]], 
-                    container.IECSsizes[listadeIECS.listView1.SelectedIndices[0]]);
+                int index = listadeIECS.listView1.SelectedIndices[0];
+                int Entryindex = Convert.ToInt32(listadeIECS.listView1.Items[index].SubItems[0].Text);
+                byte[] IEC = container.Container.ReadBytes(container.sCEI_Entries[Entryindex].Pack_Offset,
+                    container.sCEI_Entries[Entryindex].Pack_Size);
                 string saveiec = folder + @"\" + "IECS" + i.ToString() + ".bhd";
                 File.WriteAllBytes(saveiec, IEC);
 
@@ -405,82 +464,134 @@ namespace SCEIVag_Pack
         }
         public void ExtrairContainer()
         {
-            FolderBrowserDialog fold = new FolderBrowserDialog();
-            fold.Description = "Escolha a pasta onde extrair o conteúdo do Container";
-            if (fold.ShowDialog() == DialogResult.OK)
+            bool exportflist = false;
+            if (MessageBox.Show("Quer exportar apenas a FileList original?", "Exportar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                exportflist = true;
+            if (exportflist == true)
             {
-                bool exportwav = false;
-
-                if (MessageBox.Show("Quer exportar tudo em WAV?", "Exportar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                    exportwav = true;
-
-                string savepath = fold.SelectedPath + @"\" + Path.GetFileNameWithoutExtension(filename);
-                if (!Directory.Exists(savepath))
-                    Directory.CreateDirectory(savepath);
-
-                #region Escrever Lista de Arquivos
-                if (FileList == null)
-                    WriteToXML(GetEntries(exportwav), savepath + @"\filelist.xml");
-                #endregion
-
-                for (int i = 0; i < container.fileCount; i++)
+                var save = new SaveFileDialog();
+                save.Filter = "ExtensibleMarkupLanguage(*.xml)|*.xml";
+                save.FileName = "filelist";
+                if (save.ShowDialog() == DialogResult.OK)
                 {
-                    string path = savepath + @"\IECS" + i.ToString() + @"\";
+                    #region Escrever Lista de Arquivos
+                    if (FileList == null)
+                        WriteToXML(GetEntries(false), save.FileName);
+                    #endregion
+                }
+            }
+            else
+            {
+                FolderBrowserDialog fold = new FolderBrowserDialog();
+                fold.Description = "Escolha a pasta onde extrair o conteúdo do Container";
+                if (fold.ShowDialog() == DialogResult.OK)
+                {
+                    bool exportwav = false;
 
-                    if (FileList != null)
-                        path = savepath + @"\" + FileList.ElementAt(i).Key + @"\";
 
-                    if (!Directory.Exists(path))
-                        Directory.CreateDirectory(path);
+                    if (MessageBox.Show("Quer exportar tudo em WAV?", "Exportar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        exportwav = true;
 
-                    byte[] IEC = container.Container.ReadBytes(container.IECSoffsets[i],
-                        container.IECSsizes[i]);
+                    string savepath = fold.SelectedPath + @"\" + Path.GetFileNameWithoutExtension(filename);
+                    if (!Directory.Exists(savepath))
+                        Directory.CreateDirectory(savepath);
 
-                    string saveiec = path + "IECS" + i.ToString() + ".bhd";
-                    if (FileList != null)
-                        saveiec = path + FileList.ElementAt(i).Key + ".bhd";
-
-                    File.WriteAllBytes(saveiec, IEC);
-                    #region VAG Export
-                    IECS filescei = new IECS(IEC);
-                    int c = 0;
-                    foreach (var vag in filescei.vagi.Vdata)
-                    {
-                        byte[] VAG = filescei.StreamData.ReadBytes(vag.StreamOffset, 
-                            vag.StreamSize);
-
-                        string savepathva = path + "stream" + c.ToString();
-
-                        if (FileList != null)
-                            savepathva = path + FileList.ElementAt(i).Value[c];
-
-                        if (FileList == null)
-                        {
-                            if (exportwav)
-                            {
-                                File.WriteAllBytes(savepathva + ".wav", ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag.Frequency, 1));
-                            }
-                            else
-                            {
-                                File.WriteAllBytes(savepathva + ".vag", VAG);
-                            }
-                        }
-                        else
-                        {
-                            if (Path.GetExtension(FileList.ElementAt(i).Value[c]) == ".wav")
-                                File.WriteAllBytes(savepathva, ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag.Frequency, 1));
-                            else
-                                File.WriteAllBytes(savepathva, VAG);
-
-                        }
-                        c++;
-                    }
+                    #region Escrever Lista de Arquivos
+                    if (FileList == null)
+                        WriteToXML(GetEntries(exportwav), savepath + @"\filelist.xml");
                     #endregion
 
-                }
+                    var entriesScei = container.sCEI_Entries.Where(x => x.Pack_Offset.ToString("X2") != "FFFFFFFF").ToArray();
+                    for (int i = 0; i < entriesScei.Length; i++)
+                    {
+                        string path = savepath + @"\IECS" + i.ToString() + @"\";
 
-                MessageBox.Show("Concluído!\nExtraído para: " + savepath + @"\", "Extração", MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                        if (FileList != null)
+                            path = savepath + @"\" + FileList.ElementAt(i).Key + @"\";
+
+                        if (!Directory.Exists(path))
+                            Directory.CreateDirectory(path);
+
+                        byte[] IEC = container.Container.ReadBytes(entriesScei[i].Pack_Offset,
+                            entriesScei[i].Pack_Size);
+
+                        string saveiec = path + "IECS" + i.ToString() + ".bhd";
+                        if (FileList != null)
+                            saveiec = path + FileList.ElementAt(i).Key + ".bhd";
+
+                        File.WriteAllBytes(saveiec, IEC);
+                        #region VAG Export
+                        IECS filescei = new IECS(IEC);
+                        int c = 0;
+                        foreach (var vag in filescei.vagi.Vdata)
+                        {
+                            byte[] VAG = filescei.StreamData.ReadBytes(vag.StreamOffset,
+                                vag.StreamSize);
+
+                            string savepathva = path + "stream" + c.ToString();
+
+                            var VAGbits = new List<byte>();
+                            var VAGStream = new List<byte>();
+
+                            if (VAGEndianess_Big)
+                            {
+                                VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20).Reverse().ToArray());
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.StreamSize).Reverse().ToArray());
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.Frequency).Reverse().ToArray());
+                            }
+                            else
+                            {
+                                VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20));
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.StreamSize));
+                                VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.Frequency));
+                            }
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt64)0));
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                            var name = new byte[0x10];
+                            VAGbits.AddRange(name);
+
+                            VAGStream.AddRange(VAG);
+
+                            while (VAGStream.Count < sceifile.vagi.Vdata[listView1.SelectedIndices[0]].StreamSize)
+                                VAGStream.Add(0);
+
+                            VAGbits.AddRange(VAGStream.ToArray());
+
+                            if (FileList != null)
+                                savepathva = path + FileList.ElementAt(i).Value[c];
+
+                            if (FileList == null)
+                            {
+                                if (exportwav)
+                                {
+                                    File.WriteAllBytes(savepathva + ".wav", ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag.Frequency, 1));
+                                }
+                                else
+                                {
+                                    File.WriteAllBytes(savepathva + ".vag", VAGbits.ToArray());
+                                }
+                            }
+                            else
+                            {
+                                if (Path.GetExtension(FileList.ElementAt(i).Value[c]) == ".wav")
+                                    File.WriteAllBytes(savepathva, ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag.Frequency, 1));
+                                else
+                                    File.WriteAllBytes(savepathva, VAG);
+
+                            }
+                            c++;
+                        }
+                        #endregion
+
+                    }
+
+                    MessageBox.Show("Concluído!\nExtraído para: " + savepath + @"\", "Extração", MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
             }
         }
         public string ArrayToString(string[] entries)
@@ -534,13 +645,15 @@ namespace SCEIVag_Pack
                             {
                                 if (Encoding.Default.GetString(sounddata.ReadBytes(0, 3)) == "VAG")
                                 {
-                                    sounddata = sounddata.ReadBytes(0x30, 
+                                    freq = (int)sounddata.ReadUInt(0x10, 32, VAGEndianess_Big);
+                                    sounddata = sounddata.ReadBytes(0x30,
                                         sounddata.Length - 0x30);
                                 }
                             }
                             if (freqd)
                                 vag.Frequency = freq;
                             vag.StreamVAG = sounddata;
+                            vag.StreamSize = sounddata.Length;
                             v++;
                         }
 
@@ -644,9 +757,11 @@ namespace SCEIVag_Pack
                         {
                             fecharToolStripMenuItem1.Enabled = true;
                             #region Abrir arquivo
-                            container = new BINContainer(File.ReadAllBytes(filename), 
+                            container = new BINContainer(File.ReadAllBytes(filename),
                                 File.ReadAllBytes(openELF.FileName), openELF.FileName);
                             container.caminhoELF = openELF.FileName;
+                            if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
+                                FileList = container.SCEI_Names;
                             #endregion
                             #region Adicionar na lista de IECS
                             listadeIECS = new ListadeIECS(this);
@@ -680,6 +795,8 @@ namespace SCEIVag_Pack
                             container = new BINContainer(File.ReadAllBytes(filename),
                                 File.ReadAllBytes(openELF.FileName), openELF.FileName);
                             container.caminhoELF = openELF.FileName;
+                            if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
+                                FileList = container.SCEI_Names;
                             #endregion
                             #region Adicionar na lista de IECS
                             listadeIECS = new ListadeIECS(this);
@@ -831,7 +948,8 @@ namespace SCEIVag_Pack
             {
                 FileList = new Dictionary<string, string[]>();
                 FileList = ReadXML(op.FileName);
-                AbrirContainer(true);
+                if (container != null)
+                    AbrirContainer(true);
             }
         }
 
@@ -865,8 +983,6 @@ namespace SCEIVag_Pack
             reprodz = ativadoToolStripMenuItem.Checked;
         }
 
-        #endregion
-
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count == 1)
@@ -880,5 +996,21 @@ namespace SCEIVag_Pack
                 ctx_Iecs.Show(MousePosition);
             }
         }
+        private void bigEndianToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            littleEndianToolStripMenuItem.Checked = false;
+            bigEndianToolStripMenuItem.Checked = true;
+            VAGEndianess_Big = true;
+        }
+
+        private void littleEndianToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            littleEndianToolStripMenuItem.Checked = true;
+            bigEndianToolStripMenuItem.Checked = false;
+            VAGEndianess_Big = false;
+        }
+        #endregion
+
+
     }
 }
