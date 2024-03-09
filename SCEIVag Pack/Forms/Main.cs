@@ -475,7 +475,6 @@ namespace SCEIVag_Pack
                 if (save.ShowDialog() == DialogResult.OK)
                 {
                     #region Escrever Lista de Arquivos
-                    if (FileList == null)
                         WriteToXML(GetEntries(false), save.FileName);
                     #endregion
                 }
