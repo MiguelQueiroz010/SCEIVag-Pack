@@ -3,10 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using System.IO;
 using System.Linq;
 using System.Media;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
@@ -19,7 +21,6 @@ namespace SCEIVag_Pack
         public IECS sceifile;
         public BINContainer container;
         public ListadeIECS listadeIECS;
-        public Graphics paneSave;
         public string caminhoELF;
 
         public bool VAGEndianess_Big = true;
@@ -44,9 +45,9 @@ namespace SCEIVag_Pack
                 var nameslist = new List<string>();
 
                 int vagc = 0;
-                foreach (var vag in scei.scei_File._Infos.VAG_Infos)
+                foreach (var entry in scei.scei_File._Program.Entries)
                 {
-                    string vagname = "stream" + vagc.ToString();
+                    string vagname = "S_FOLDER_" + vagc.ToString();
                     if (ext)
                     {
                         if (altext == "SYSTEM")
@@ -79,7 +80,7 @@ namespace SCEIVag_Pack
             XmlDocument reader = new XmlDocument();
             reader.Load(filelistpath); //Carregando o arquivo
 
-            XmlNodeList xnList = reader.GetElementsByTagName("Pasta");
+            XmlNodeList xnList = reader.GetElementsByTagName("Container");
 
             foreach (XmlNode xn in xnList)
             {
@@ -108,7 +109,7 @@ namespace SCEIVag_Pack
             var list = new List<XmlNode>();
             foreach (var entry in entries)
             {
-                XmlElement pasta = creator.CreateElement("Pasta");
+                XmlElement pasta = creator.CreateElement("Container");
                 pasta.SetAttribute("name", entry.Key);
                 string innertext = ArrayToString(entry.Value);
                 XmlText filename = creator.CreateTextNode(innertext);
@@ -136,13 +137,17 @@ namespace SCEIVag_Pack
                 
                 var item = new SCEINode();
                 item.Text = $"Folder_{f}_Scei";
-                if(vgs.Extent_Count>0)
+
+                if (FileList != null)
+                    item.Text = FileList.ElementAt(Convert.ToInt32(listadeIECS.listView1.SelectedItems[0].SubItems[0].Text)).Value[f];
+
+                i = 0;
+                if (vgs.Extent_Count > 0)
                     foreach(var extent in vgs.Extents)
                     {
                         var subitem = new SCEINode();
-                        string vagname = "stream" + i.ToString() + ".vag";
-                        //if (FileList != null)
-                        //    vagname = FileList.ElementAt(Convert.ToInt32(listadeIECS.listView1.SelectedItems[0].SubItems[0].Text)).Value[i];
+                        string vagname = "Audio Stream_" + i.ToString();
+                        
 
                         int ssetid = extent.Index;
                         int sampleid = sceifile._SampleSets.SampleSets[ssetid].SampleID;
@@ -152,11 +157,11 @@ namespace SCEIVag_Pack
 
                         subitem.Text = vagname;
                         item.Nodes.Add(subitem);
+                        i++;
                     }
                 if(item.Nodes.Count>1)
                     item.Expand();
                 treeView1.Nodes.Add(item);
-                i++;
                 f++;
             }
             if (!scei_layout.Visible)
@@ -281,7 +286,6 @@ namespace SCEIVag_Pack
                     container.Rebuild();
                     node.ForeColor = Color.Red;
                     listadeIECS.listView1.SelectedItems[0].ForeColor = Color.Red;
-                    //listView1.SelectedItems[0].SubItems[2].Text = freq.ToString() + "Hz";
                     MessageBox.Show("Importado no container!\nNão se esqueça de salvar!", "Importação", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
@@ -328,11 +332,9 @@ namespace SCEIVag_Pack
                 }
 
                 //Efeito e texto
-                paneSave = panel1.CreateGraphics();
-                panel1.Visible = true;
-                panel1.BringToFront();
-                paneSave.Clear(Color.White);
-                paneSave.DrawString("Arquivo salvo!", new Font(FontFamily.GenericSerif, 24f, FontStyle.Bold), Brushes.DarkGreen, 0, 0);
+                animpanel.Visible = true;
+                animpanel.BringToFront();
+                MessageBox.Show("Arquivo salvo!");
                 timer1.Enabled = true;
                 timer1.Start();
                 RefreshFile();
@@ -698,7 +700,13 @@ namespace SCEIVag_Pack
                 }
             }
         }
-        void Abrir(bool isDrag)
+        void ShowHideAnim()
+        {
+            animBox.Visible = !animBox.Visible;
+            animpanel.Visible = !animpanel.Visible;
+            animlbl.Visible = !animlbl.Visible;
+        }
+        async void Abrir(bool isDrag)
         {
             switch (isDrag)
             {
@@ -746,7 +754,7 @@ namespace SCEIVag_Pack
                     break;
             }
         }
-        void AbrirContainer(bool isDrag)
+        async void AbrirContainer(bool isDrag)
         {
             switch (isDrag)
             {
@@ -766,15 +774,22 @@ namespace SCEIVag_Pack
                         if (openELF.ShowDialog() == DialogResult.OK)
                         {
                             fecharToolStripMenuItem1.Enabled = true;
-                            #region Abrir arquivo
-                            container = new BINContainer(File.ReadAllBytes(filename),
+                            ShowHideAnim();
+                            await Task.Run(() =>
+                            {
+                                Cursor.Current = Cursors.WaitCursor;
+                                #region Abrir arquivo
+                                container = new BINContainer(File.ReadAllBytes(filename),
                                 File.ReadAllBytes(openELF.FileName), openELF.FileName);
-                            container.caminhoELF = openELF.FileName;
-                            if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
-                                FileList = container.SCEI_Names;
-                            #endregion
-                            #region Adicionar na lista de IECS
-                            listadeIECS = new ListadeIECS(this);
+                                container.caminhoELF = openELF.FileName;
+                                if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
+                                    FileList = container.SCEI_Names;
+                                #endregion
+                                #region Adicionar na lista de IECS
+                                listadeIECS = new ListadeIECS(this);
+                            });
+                            ShowHideAnim();
+                            Cursor.Current = Cursors.Arrow;
                             listadeIECS.Show();
                             #endregion
                         }
@@ -801,16 +816,24 @@ namespace SCEIVag_Pack
                         {
                             filename = open.FileName;
                             fecharToolStripMenuItem1.Enabled = true;
-                            #region Abrir arquivo
-                            container = new BINContainer(File.ReadAllBytes(filename),
+                            ShowHideAnim();
+                            
+                            await Task.Run(() =>
+                            {
+                                Cursor.Current = Cursors.WaitCursor;
+                                #region Abrir arquivo
+                                container = new BINContainer(File.ReadAllBytes(filename),
                                 File.ReadAllBytes(openELF.FileName), openELF.FileName);
-                            container.caminhoELF = openELF.FileName;
-                            if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
-                                FileList = container.SCEI_Names;
-                            #endregion
-                            #region Adicionar na lista de IECS
-                            listadeIECS = new ListadeIECS(this);
+                                container.caminhoELF = openELF.FileName;
+                                if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
+                                    FileList = container.SCEI_Names;
+                                #endregion
+                                #region Adicionar na lista de IECS
+                                listadeIECS = new ListadeIECS(this);
+                            });
                             listadeIECS.Show();
+                            ShowHideAnim();
+                            Cursor.Current = Cursors.Arrow;
                             #endregion
                         }
                         #endregion
@@ -824,7 +847,7 @@ namespace SCEIVag_Pack
         #region Botões e Eventos
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start(Path.GetFullPath(filename));
+            Process.Start(Path.GetDirectoryName(filename));
         }
         private void abrirBINToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -896,7 +919,7 @@ namespace SCEIVag_Pack
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            panel1.Visible = false;
+            animpanel.Visible = false;
             timer1.Stop();
             timer1.Enabled = false;
         }

@@ -109,6 +109,68 @@ namespace SCEIVag_Pack
             InternalName = Path.GetFileName(path);
 
         }
+        public void CreateXML()
+        {
+            Stream xml = File.CreateText("config.xml").BaseStream;
+            XmlDocument doc = new XmlDocument();
+            XmlElement root = doc.CreateElement("CCS_ASSET_EDITOR_CONFIG");
+
+            #region Config Childs
+            #region Console
+            XmlElement consoleoptions = doc.CreateElement("Console");
+
+            //Visible
+            var visible = doc.CreateElement("Visible");
+            //visible.AppendChild(doc.CreateTextNode(consoleToolStripMenuItem.Checked.ToString().ToLower()));
+
+            //RW Operations
+            var rwop = doc.CreateElement("Read-Write_Operations");
+            //rwop.AppendChild(doc.CreateTextNode(blocksReadWriteToolStripMenuItem.Checked.ToString().ToLower()));
+
+            //System Messages
+            var sysmsg = doc.CreateElement("System_Messages");
+            //sysmsg.AppendChild(doc.CreateTextNode(systemToolStripMenuItem1.Checked.ToString().ToLower()));
+
+            consoleoptions.AppendChild(visible);
+            consoleoptions.AppendChild(rwop);
+            consoleoptions.AppendChild(sysmsg);
+            #endregion
+
+            #region View Options
+            XmlElement viewopt = doc.CreateElement("View");
+
+            //Animations
+            var anim = doc.CreateElement("Animations");
+            //anim.AppendChild(doc.CreateTextNode(Animations.ToString().ToLower()));
+
+            viewopt.AppendChild(anim);
+            #endregion
+
+            #region Options
+            XmlElement opt = doc.CreateElement("Options");
+
+            //Default Texture Viewer/Editor
+            var defaulttexture = doc.CreateElement("Default_Texture_Viewer_Editor");
+            //defaulttexture.AppendChild(doc.CreateTextNode(DefaultTextureVE));
+
+            //Edit Texture Bool
+            var editexture = doc.CreateElement("Edit_Texture");
+            //editexture.AppendChild(doc.CreateTextNode(EditTexture.ToString().ToLower()));
+
+            opt.AppendChild(defaulttexture);
+            opt.AppendChild(editexture);
+            #endregion
+
+            root.AppendChild(consoleoptions);//Console Options
+            root.AppendChild(viewopt);//View Options
+            root.AppendChild(opt);//Options
+            #endregion
+
+            doc.AppendChild(root);
+            doc.Save(xml);
+            xml.Close();
+        }
+
         public void GetXML(out Dictionary<int, int> tables, out Dictionary<string, string[]> filenames)
         {
             var tablesinp = new Dictionary<int, int>();
@@ -150,7 +212,7 @@ namespace SCEIVag_Pack
                             break;
                         case "filelist":
                             
-                            foreach (XmlElement pointCoord in node.SelectNodes("Pasta"))
+                            foreach (XmlElement pointCoord in node.SelectNodes("Container"))
                             {
                                 if (pointCoord != null)
                                 {
@@ -158,11 +220,6 @@ namespace SCEIVag_Pack
                                     dict.Add(pointCoord.Attributes["name"].Value, files);
                                 }
                             }
-                            //foreach (XmlNode pasta in xnList)
-                            //{
-                            //    string[] files = pasta.InnerText.Split(new string[] { "\r\n", "" }, StringSplitOptions.RemoveEmptyEntries);
-                            //    dict.Add(xn.Attributes["name"].Value, files);
-                            //}
 
                             break;
                     }

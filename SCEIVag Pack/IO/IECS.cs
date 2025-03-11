@@ -742,6 +742,10 @@ namespace SCEIVag_Pack
 
             #region Set Tables
             linkedELF.GetXML(out SCEI_Tables, out SCEI_Names);
+
+
+
+
             #region Read Scei Entries
             foreach (var table in SCEI_Tables)
             {
@@ -783,40 +787,7 @@ namespace SCEIVag_Pack
 
             #endregion
             #endregion
-            #region UNUSED
-            //#region Contagem e Offsets
-            //fileCount = 0;
-            //IECSoffsets = new List<int>();
-            //for (int i = 0; i < Container.Length; i += 8)
-            //{
-            //    if (Encoding.Default.GetString(ReadBlock(Container, (uint)i, 8)) == "IECSsreV")
-            //    {
-            //        IECSoffsets.Add(i);
-            //        fileCount++;
-            //    }
-            //}
-            //#endregion
-            //#region Separar IECS
-            //sceiFiles = new List<IECS>();
-            //int k = 0;
-            //int size = 0;
-            //IECSsizes = new List<int>();
-            //foreach (var iecoff in IECSoffsets)
-            //{
-            //    if (k == IECSoffsets.Count() - 1)
-            //    {
-            //        size = input.Length - iecoff;
-            //    }
-            //    else
-            //    {
-            //        size = IECSoffsets[k + 1] - iecoff;
-            //    }
-            //    byte[] iecs = ReadBlock(input, (uint)iecoff, (uint)size);
-            //    IECSsizes.Add(iecs.Length);
-            //    sceiFiles.Add(new IECS(iecs));
-            //    k++;
-            //}
-            #endregion
+            
         }
         public void Rebuild()
         {

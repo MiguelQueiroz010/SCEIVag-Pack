@@ -56,16 +56,16 @@
             // 
             // columnHeader1
             // 
-            this.columnHeader1.Text = "Índice";
+            this.columnHeader1.Text = "Index";
             // 
             // columnHeader2
             // 
-            this.columnHeader2.Text = "Nome";
+            this.columnHeader2.Text = "Name";
             this.columnHeader2.Width = 167;
             // 
             // columnHeader3
             // 
-            this.columnHeader3.Text = "Tamanho";
+            this.columnHeader3.Text = "Size";
             this.columnHeader3.Width = 77;
             // 
             // label1
@@ -73,11 +73,11 @@
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.ForestGreen;
-            this.label1.Location = new System.Drawing.Point(8, 12);
+            this.label1.Location = new System.Drawing.Point(52, 12);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(218, 20);
+            this.label1.Size = new System.Drawing.Size(128, 20);
             this.label1.TabIndex = 1;
-            this.label1.Text = "BIN Container IECS arquivos:";
+            this.label1.Text = "Container Name:";
             // 
             // quantlab
             // 
@@ -97,7 +97,7 @@
             this.filenamlab.AutoSize = true;
             this.filenamlab.BackColor = System.Drawing.Color.Transparent;
             this.filenamlab.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.filenamlab.Location = new System.Drawing.Point(223, 16);
+            this.filenamlab.Location = new System.Drawing.Point(208, 15);
             this.filenamlab.Name = "filenamlab";
             this.filenamlab.Size = new System.Drawing.Size(58, 16);
             this.filenamlab.TabIndex = 3;

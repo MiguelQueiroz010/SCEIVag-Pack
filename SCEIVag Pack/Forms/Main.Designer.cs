@@ -42,6 +42,9 @@
             this.extrairToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importarVAGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.extrairTodosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.treevmenuitem = new System.Windows.Forms.ToolStripMenuItem();
             this.bigEndianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.littleEndianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -64,15 +67,16 @@
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.animpanel = new System.Windows.Forms.Panel();
+            this.animBox = new System.Windows.Forms.PictureBox();
+            this.animlbl = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.ctx_Iecs.SuspendLayout();
             this.scei_layout.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.animpanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.animBox)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -163,7 +167,7 @@
             // 
             this.extrairToolStripMenuItem.Enabled = false;
             this.extrairToolStripMenuItem.Name = "extrairToolStripMenuItem";
-            this.extrairToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.extrairToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.extrairToolStripMenuItem.Text = "Extract VAG";
             this.extrairToolStripMenuItem.Click += new System.EventHandler(this.extrairToolStripMenuItem_Click);
             // 
@@ -171,7 +175,7 @@
             // 
             this.importarVAGToolStripMenuItem.Enabled = false;
             this.importarVAGToolStripMenuItem.Name = "importarVAGToolStripMenuItem";
-            this.importarVAGToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.importarVAGToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.importarVAGToolStripMenuItem.Text = "Import VAG";
             this.importarVAGToolStripMenuItem.Click += new System.EventHandler(this.importarVAGToolStripMenuItem_Click);
             // 
@@ -179,9 +183,32 @@
             // 
             this.extrairTodosToolStripMenuItem.Enabled = false;
             this.extrairTodosToolStripMenuItem.Name = "extrairTodosToolStripMenuItem";
-            this.extrairTodosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.extrairTodosToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.extrairTodosToolStripMenuItem.Text = "Extract All";
             this.extrairTodosToolStripMenuItem.Click += new System.EventHandler(this.extrairTodosToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem3
+            // 
+            this.toolStripMenuItem3.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem4,
+            this.toolStripMenuItem5});
+            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(151, 22);
+            this.toolStripMenuItem3.Text = "VAG Endianess";
+            // 
+            // toolStripMenuItem4
+            // 
+            this.toolStripMenuItem4.Checked = true;
+            this.toolStripMenuItem4.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(139, 22);
+            this.toolStripMenuItem4.Text = "Big Endian";
+            // 
+            // toolStripMenuItem5
+            // 
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(139, 22);
+            this.toolStripMenuItem5.Text = "Little Endian";
             // 
             // treevmenuitem
             // 
@@ -190,20 +217,20 @@
             this.littleEndianToolStripMenuItem});
             this.treevmenuitem.Enabled = false;
             this.treevmenuitem.Name = "treevmenuitem";
-            this.treevmenuitem.Size = new System.Drawing.Size(180, 22);
+            this.treevmenuitem.Size = new System.Drawing.Size(151, 22);
             this.treevmenuitem.Text = "TreeView";
             // 
             // bigEndianToolStripMenuItem
             // 
             this.bigEndianToolStripMenuItem.Name = "bigEndianToolStripMenuItem";
-            this.bigEndianToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.bigEndianToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.bigEndianToolStripMenuItem.Text = "Expand All";
             this.bigEndianToolStripMenuItem.Click += new System.EventHandler(this.Expand_Clicl);
             // 
             // littleEndianToolStripMenuItem
             // 
             this.littleEndianToolStripMenuItem.Name = "littleEndianToolStripMenuItem";
-            this.littleEndianToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.littleEndianToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.littleEndianToolStripMenuItem.Text = "Collapse All";
             this.littleEndianToolStripMenuItem.Click += new System.EventHandler(this.Collapse_Click);
             // 
@@ -223,7 +250,7 @@
             // 
             this.extrairuniccon.Enabled = false;
             this.extrairuniccon.Name = "extrairuniccon";
-            this.extrairuniccon.Size = new System.Drawing.Size(180, 22);
+            this.extrairuniccon.Size = new System.Drawing.Size(142, 22);
             this.extrairuniccon.Text = "Extract";
             this.extrairuniccon.Click += new System.EventHandler(this.extrairuniccon_Click);
             // 
@@ -231,7 +258,7 @@
             // 
             this.extrairTudoToolStripMenuItem.Enabled = false;
             this.extrairTudoToolStripMenuItem.Name = "extrairTudoToolStripMenuItem";
-            this.extrairTudoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.extrairTudoToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
             this.extrairTudoToolStripMenuItem.Text = "Extract All";
             this.extrairTudoToolStripMenuItem.Click += new System.EventHandler(this.extrairTudoToolStripMenuItem_Click);
             // 
@@ -239,14 +266,14 @@
             // 
             this.fecharToolStripMenuItem1.Enabled = false;
             this.fecharToolStripMenuItem1.Name = "fecharToolStripMenuItem1";
-            this.fecharToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.fecharToolStripMenuItem1.Size = new System.Drawing.Size(142, 22);
             this.fecharToolStripMenuItem1.Text = "Close";
             this.fecharToolStripMenuItem1.Click += new System.EventHandler(this.fecharToolStripMenuItem1_Click);
             // 
             // recriarToolStripMenuItem
             // 
             this.recriarToolStripMenuItem.Name = "recriarToolStripMenuItem";
-            this.recriarToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.recriarToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
             this.recriarToolStripMenuItem.Text = "Rebuild";
             this.recriarToolStripMenuItem.Click += new System.EventHandler(this.recriarToolStripMenuItem_Click);
             // 
@@ -254,7 +281,7 @@
             // 
             this.abrirListaDeArquivosToolStripMenuItem.Enabled = false;
             this.abrirListaDeArquivosToolStripMenuItem.Name = "abrirListaDeArquivosToolStripMenuItem";
-            this.abrirListaDeArquivosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.abrirListaDeArquivosToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
             this.abrirListaDeArquivosToolStripMenuItem.Text = "Open FileList";
             this.abrirListaDeArquivosToolStripMenuItem.Visible = false;
             this.abrirListaDeArquivosToolStripMenuItem.Click += new System.EventHandler(this.abrirListaDeArquivosToolStripMenuItem_Click);
@@ -388,36 +415,40 @@
             this.linkLabel1.Text = "linkLabel1";
             this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
-            // panel1
+            // animpanel
             // 
-            this.panel1.Location = new System.Drawing.Point(0, 24);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(644, 434);
-            this.panel1.TabIndex = 2;
-            this.panel1.Visible = false;
+            this.animpanel.Controls.Add(this.animlbl);
+            this.animpanel.Controls.Add(this.animBox);
+            this.animpanel.Location = new System.Drawing.Point(0, 24);
+            this.animpanel.Name = "animpanel";
+            this.animpanel.Size = new System.Drawing.Size(644, 434);
+            this.animpanel.TabIndex = 2;
+            this.animpanel.Visible = false;
             // 
-            // toolStripMenuItem3
+            // animBox
             // 
-            this.toolStripMenuItem3.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem4,
-            this.toolStripMenuItem5});
-            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(180, 22);
-            this.toolStripMenuItem3.Text = "VAG Endianess";
+            this.animBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.animBox.Image = global::SCEIVag_Pack.Properties.Resources.FMvz;
+            this.animBox.Location = new System.Drawing.Point(50, 45);
+            this.animBox.Name = "animBox";
+            this.animBox.Size = new System.Drawing.Size(533, 270);
+            this.animBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.animBox.TabIndex = 0;
+            this.animBox.TabStop = false;
+            this.animBox.Visible = false;
+            this.animBox.WaitOnLoad = true;
             // 
-            // toolStripMenuItem4
+            // animlbl
             // 
-            this.toolStripMenuItem4.Checked = true;
-            this.toolStripMenuItem4.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(180, 22);
-            this.toolStripMenuItem4.Text = "Big Endian";
-            // 
-            // toolStripMenuItem5
-            // 
-            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(180, 22);
-            this.toolStripMenuItem5.Text = "Little Endian";
+            this.animlbl.AutoSize = true;
+            this.animlbl.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.animlbl.Location = new System.Drawing.Point(123, 321);
+            this.animlbl.Name = "animlbl";
+            this.animlbl.Size = new System.Drawing.Size(398, 39);
+            this.animlbl.TabIndex = 1;
+            this.animlbl.Text = "Carregando as entradas...";
+            this.animlbl.Visible = false;
             // 
             // Main
             // 
@@ -427,7 +458,7 @@
             this.BackgroundImage = global::SCEIVag_Pack.Properties.Resources.scei_vag_toolnewart;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(644, 458);
-            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.animpanel);
             this.Controls.Add(this.scei_layout);
             this.Controls.Add(this.menuStrip1);
             this.DoubleBuffered = true;
@@ -446,6 +477,9 @@
             this.tableLayoutPanel2.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.animpanel.ResumeLayout(false);
+            this.animpanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.animBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -482,7 +516,7 @@
         private System.Windows.Forms.ToolStripMenuItem littleEndianToolStripMenuItem;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel animpanel;
         public System.Windows.Forms.TreeView treeView1;
         public System.Windows.Forms.PropertyGrid propertyGrid1;
         public System.Windows.Forms.LinkLabel linkLabel1;
@@ -491,6 +525,8 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
         public System.Windows.Forms.ToolStripMenuItem treevmenuitem;
+        public System.Windows.Forms.PictureBox animBox;
+        public System.Windows.Forms.Label animlbl;
     }
 }
 

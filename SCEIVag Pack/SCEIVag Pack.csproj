@@ -133,6 +133,7 @@
   <ItemGroup>
     <Content Include="App\headphone_icon_124385.ico" />
     <Content Include="rec_sof01.ico" />
+    <None Include="Resources\FMvz.gif" />
     <None Include="Resources\Logotipo_2024.jpg" />
   </ItemGroup>
   <ItemGroup>
