@@ -68,6 +68,21 @@ public static class IOextent
     }
 
     /// <summary>
+    /// Lê uma quantia específica de bytes de um determinado array[buffer] para Prog.Entry, exclusivo do IECS[BHD SCEI].
+    /// </summary>
+    /// <param name="offset">Posição para iniciar a leitura.</param>
+    /// <param name="size">Tamanho da leitura em bytes.</param>
+    /// <returns>Byte[].</returns>
+    public static byte[] ReadEntryBytes(this byte[] array, int offset)
+    {
+        var result = new List<byte>();
+        result.AddRange(Enumerable.Range(
+            0, (array[offset + 4] * array[offset + 5]) + 0x24
+            ).Select(x => array[x+ offset]));
+        return result.ToArray();
+    }
+
+    /// <summary>
     /// Lê uma quantia específica de bytes de um fluxo determinado e avança a posição na mesma quantia[Stream].
     /// </summary>
     /// <param name="offset">Posição para iniciar a leitura.</param>

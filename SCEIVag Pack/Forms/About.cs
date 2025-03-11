@@ -20,6 +20,8 @@ namespace SCEIVag_Pack
             InitializeComponent();
             f01 = f1;
             f01.Visible = false;
+            if (f01.listadeIECS != null)
+                f01.listadeIECS.Visible = false;
             Stream str = Properties.Resources.sobre;
             ss = new SoundPlayer(str);
             ss.Play();
@@ -30,6 +32,8 @@ namespace SCEIVag_Pack
             ss.Dispose();
             Close();
             f01.Visible = true;
+            if(f01.listadeIECS !=null)
+             f01.listadeIECS.Visible = true;
         }
 
         #region Acessório de Atributos do Assembly
@@ -126,6 +130,11 @@ namespace SCEIVag_Pack
         private void pictureBox2_Click(object sender, EventArgs e)
         {
             closex();
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("http://bitmundo.xyz");
         }
     }
 }

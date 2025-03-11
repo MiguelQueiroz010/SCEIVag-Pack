@@ -63,19 +63,17 @@ namespace SCEIVag_Pack
                 if (listView1.SelectedItems[0].SubItems[1].Text != "ENTRADA VAZIA")
                 {
                     f1.extrairuniccon.Enabled = true;
-                    if (f1.sceifile != null)
-                    {
-                        f1.sceifile = null;
-                        f1.ShowHide();
-                    }
-                    f1.listView1.Items.Clear();
+                    //if (f1.sceifile != null)
+                    //{
+                    //    f1.sceifile = null;
+                    //    f1.ShowHide();
+                    //}
+                    f1.treeView1.Nodes.Clear();
                     f1.sceifile = f1.container.sCEI_Entries[listView1.SelectedIndices[0]].scei_File;
                     #region Acionar Labels
-                    f1.filenamelabel.Text = "Nome: " + Path.GetFileName(listView1.SelectedItems[0].SubItems[1].Text);
-                    f1.verslabel.Text = "Pack Versão: " + f1.sceifile.version.Versão.ToString();
-                    f1.vagnlabel.Text = "Número de Áudios: " + f1.sceifile.vagi.VAGcount.ToString();
+                    f1.linkLabel1.Text = "Nome: " + Path.GetFileName(listView1.SelectedItems[0].SubItems[1].Text);
                     #endregion
-                    f1.ListInsert();
+                    f1.TreePopulate();
                 }
             }
             else

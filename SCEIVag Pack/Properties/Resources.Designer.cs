@@ -93,9 +93,39 @@ namespace SCEIVag_Pack.Properties {
         /// <summary>
         ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Logotipo {
+            get {
+                object obj = ResourceManager.GetObject("Logotipo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Logotipo_2024 {
             get {
                 object obj = ResourceManager.GetObject("Logotipo_2024", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Logotipo_redondo {
+            get {
+                object obj = ResourceManager.GetObject("Logotipo redondo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap scei_vag_toolnewart {
+            get {
+                object obj = ResourceManager.GetObject("scei_vag_toolnewart", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
