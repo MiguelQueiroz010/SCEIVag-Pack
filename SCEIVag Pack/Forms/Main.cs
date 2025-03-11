@@ -126,25 +126,38 @@ namespace SCEIVag_Pack
             salvarComoToolStripMenuItem.Enabled = !salvarComoToolStripMenuItem.Enabled;
             fecharToolStripMenuItem.Enabled = !fecharToolStripMenuItem.Enabled;
             extrairTodosToolStripMenuItem.Enabled = !extrairTodosToolStripMenuItem.Enabled;
+            treevmenuitem.Enabled = !treevmenuitem.Enabled;
         }
         public void TreePopulate()
         {
-            int i = 0;
+            int i = 0, f =0;
             foreach (var vgs in sceifile._Program.Entries)
             {
-                var item = new SCEINode();
-                item.Information = sceifile._Infos.VAG_Infos[i];
-                string vagname = "stream" + i.ToString() + ".vag";
-
-
-                if (FileList != null)
-                    vagname = FileList.ElementAt(Convert.ToInt32(listadeIECS.listView1.SelectedItems[0].SubItems[0].Text)).Value[i];
-
                 
+                var item = new SCEINode();
+                item.Text = $"Folder_{f}_Scei";
+                if(vgs.Extent_Count>0)
+                    foreach(var extent in vgs.Extents)
+                    {
+                        var subitem = new SCEINode();
+                        string vagname = "stream" + i.ToString() + ".vag";
+                        //if (FileList != null)
+                        //    vagname = FileList.ElementAt(Convert.ToInt32(listadeIECS.listView1.SelectedItems[0].SubItems[0].Text)).Value[i];
 
-                item.Text = vagname;
+                        int ssetid = extent.Index;
+                        int sampleid = sceifile._SampleSets.SampleSets[ssetid].SampleID;
+                        int infoid = sceifile._Samples.VAG_Samples[sampleid].VAG_Id;
+
+                        subitem.Information = sceifile._Infos.VAG_Infos[infoid];
+
+                        subitem.Text = vagname;
+                        item.Nodes.Add(subitem);
+                    }
+                if(item.Nodes.Count>1)
+                    item.Expand();
                 treeView1.Nodes.Add(item);
                 i++;
+                f++;
             }
             if (!scei_layout.Visible)
                 ShowHide();
@@ -935,26 +948,27 @@ namespace SCEIVag_Pack
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (treeView1.SelectedNode != null)
-            {
-                extrairToolStripMenuItem.Enabled = true;
-                importarVAGToolStripMenuItem.Enabled = true;
-                if (reprodz)
+                if(treeView1.SelectedNode.Level==1)
                 {
-                    if (player != null)
+                    extrairToolStripMenuItem.Enabled = true;
+                    importarVAGToolStripMenuItem.Enabled = true;
+                    if (reprodz)
                     {
-                        player.Stop();
-                        player = null;
+                        if (player != null)
+                        {
+                            player.Stop();
+                            player = null;
+                        }
+                        player = new SoundPlayer(GetWav());
+                        player.Play();
                     }
-                    player = new SoundPlayer(GetWav());
-                    player.Play();
+                    propertyGrid1.SelectedObject = GetSelected().Information;
                 }
-                propertyGrid1.SelectedObject = GetSelected().Information;
-            }
-            else
-            {
-                extrairToolStripMenuItem.Enabled = false;
-                importarVAGToolStripMenuItem.Enabled = false;
-            }
+                else
+                {
+                    extrairToolStripMenuItem.Enabled = false;
+                    importarVAGToolStripMenuItem.Enabled = false;
+                }
 
         }
         private void button2_Click(object sender, EventArgs e)
@@ -1007,9 +1021,16 @@ namespace SCEIVag_Pack
             VAGEndianess_Big = false;
         }
 
-
+        private void Expand_Clicl(object sender, EventArgs e)
+        {
+            treeView1.ExpandAll();
+        }
+        private void Collapse_Click(object sender, EventArgs e)
+        {
+            treeView1.CollapseAll();
+        }
         #endregion
 
-        
+
     }
 }
