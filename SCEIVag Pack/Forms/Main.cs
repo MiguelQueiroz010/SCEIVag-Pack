@@ -23,13 +23,14 @@ namespace SCEIVag_Pack
         public ListadeIECS listadeIECS;
         public string caminhoELF;
 
-        public bool VAGEndianess_Big = true;
+        public static bool VAGEndianess_Big = true;
 
         public SoundPlayer player;
 
         public string filename;
         public bool reprodz = true;
         public Dictionary<string, string[]> FileList;
+        public AddForm AddForm;
         public Main()
         {
             InitializeComponent();
@@ -39,7 +40,8 @@ namespace SCEIVag_Pack
         {
             var entries = new Dictionary<string, string[]>();
             int ind = 0;
-            foreach (var scei in container.sCEI_Entries.Where(x => x.Pack_Offset.ToString("X2") != "FFFFFFFF").ToArray())
+            foreach (var scei in container.sCEI_Entries.
+                Where(x => x.Pack_Offset.ToString("X2") != "FFFFFFFF").ToArray())
             {
                 string key = "IECS" + ind.ToString();
                 var nameslist = new List<string>();
@@ -78,7 +80,8 @@ namespace SCEIVag_Pack
             var dict = new Dictionary<string, string[]>();
             #region Leitor XML
             XmlDocument reader = new XmlDocument();
-            reader.Load(filelistpath); //Carregando o arquivo
+            var file = new FileStream(filelistpath, FileMode.Open);
+            reader.Load(file); //Carregando o arquivo
 
             XmlNodeList xnList = reader.GetElementsByTagName("Container");
 
@@ -88,6 +91,7 @@ namespace SCEIVag_Pack
                 dict.Add(xn.Attributes["name"].Value, files);
             }
             #endregion  
+            file.Close();
             return dict;
         }
         public SCEINode GetSelected() => treeView1.SelectedNode as SCEINode;
@@ -131,11 +135,15 @@ namespace SCEIVag_Pack
         }
         public void TreePopulate()
         {
-            int i = 0, f =0;
+            int i = 0, f = 0;
             foreach (var vgs in sceifile._Program.Entries)
             {
-                
+
                 var item = new SCEINode();
+                item.Entry = vgs;
+                if (vgs.CreatedNow)
+                    item.ForeColor = Color.Red;
+
                 item.Text = $"Folder_{f}_Scei";
 
                 if (FileList != null)
@@ -143,23 +151,25 @@ namespace SCEIVag_Pack
 
                 i = 0;
                 if (vgs.Extent_Count > 0)
-                    foreach(var extent in vgs.Extents)
+                    foreach (var extent in vgs.Extents)
                     {
                         var subitem = new SCEINode();
                         string vagname = "Audio Stream_" + i.ToString();
-                        
 
                         int ssetid = extent.Index;
                         int sampleid = sceifile._SampleSets.SampleSets[ssetid].SampleID;
                         int infoid = sceifile._Samples.VAG_Samples[sampleid].VAG_Id;
 
                         subitem.Information = sceifile._Infos.VAG_Infos[infoid];
+                        subitem.Entry = vgs;
+                        subitem.Sample = sceifile._Samples.VAG_Samples[sampleid];
+                        subitem.SampleSet = sceifile._SampleSets.SampleSets[ssetid];
 
                         subitem.Text = vagname;
                         item.Nodes.Add(subitem);
                         i++;
                     }
-                if(item.Nodes.Count>1)
+                if (item.Nodes.Count > 1)
                     item.Expand();
                 treeView1.Nodes.Add(item);
                 f++;
@@ -181,6 +191,9 @@ namespace SCEIVag_Pack
             if (listadeIECS != null && listadeIECS.Visible)
                 listadeIECS.Close();
 
+            if (player != null)
+                player.Stop();
+
             if (scei_layout.Visible)
                 ShowHide();
         }
@@ -190,7 +203,7 @@ namespace SCEIVag_Pack
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Wave Audio(*.wav)|*.wav|PS2 ADPCM VAG(*.vag)|*.vag";
             save.Title = "Escolha onde salvar o áudio VAG selecionado";
-            var file = Path.GetFileNameWithoutExtension(node.Text);
+            var file = node.Parent.Text + "_" + node.Index;
             save.FileName = file;
             if (save.ShowDialog() == DialogResult.OK)
             {
@@ -317,28 +330,49 @@ namespace SCEIVag_Pack
         }
         public void Salvar()
         {
+            int i = 0, f = 0;
+            foreach (var vgs in sceifile._Program.Entries)
             {
-                if (container != null)
-                {
-                    container.Rebuild();
+                vgs.CreatedNow = false;
+                i = 0;
+                if (vgs.Extent_Count > 0)
+                    foreach (var extent in vgs.Extents)
+                    {
+                        var subitem = new SCEINode();
+                        string vagname = "Audio Stream_" + i.ToString();
 
-                    //container.SaveToELF(container.caminhoELF);
-                    File.WriteAllBytes(filename, container.Container);
-                    File.WriteAllBytes(container.caminhoELF, container.linkedELF.GetEdited());
-                }
-                else
-                {
-                    File.WriteAllBytes(filename, sceifile.Input);
-                }
 
-                //Efeito e texto
-                animpanel.Visible = true;
-                animpanel.BringToFront();
-                MessageBox.Show("Arquivo salvo!");
-                timer1.Enabled = true;
-                timer1.Start();
-                RefreshFile();
+                        int ssetid = extent.Index;
+                        int sampleid = sceifile._SampleSets.SampleSets[ssetid].SampleID;
+                        int infoid = sceifile._Samples.VAG_Samples[sampleid].VAG_Id;
+
+                        subitem.Information = sceifile._Infos.VAG_Infos[infoid];
+                        subitem.Entry = vgs;
+                        subitem.Sample = sceifile._Samples.VAG_Samples[sampleid];
+                        subitem.SampleSet = sceifile._SampleSets.SampleSets[ssetid];
+
+                        i++;
+                    }
+
+                f++;
             }
+            if (container != null)
+            {
+                container.Rebuild();
+
+                File.WriteAllBytes(filename, container.Container);
+                File.WriteAllBytes(container.caminhoELF, container.linkedELF.GetEdited());
+                container.linkedELF.MergeXML(FileList);
+            }
+            else
+            {
+                File.WriteAllBytes(filename, sceifile.Input);
+            }
+
+            //Efeito e texto
+            MessageBox.Show("Arquivo salvo!");
+            RefreshFile();
+
         }
         void SalvarComo()
         {
@@ -358,7 +392,7 @@ namespace SCEIVag_Pack
                     //Save Elf
                     save.FileName = Path.GetFileNameWithoutExtension(container.caminhoELF);
                     save.Filter = "ExecutableandLinkableFormat(*.*)|*.*)";
-                    if(save.ShowDialog()==DialogResult.OK)
+                    if (save.ShowDialog() == DialogResult.OK)
                         File.WriteAllBytes(save.FileName, container.linkedELF.GetEdited());
                 }
                 else
@@ -371,6 +405,14 @@ namespace SCEIVag_Pack
         }
         public void RefreshFile()
         {
+            #region Abrir arquivo
+            //string elfpath = container.caminhoELF;
+            //container = new BINContainer(File.ReadAllBytes(filename),
+            //File.ReadAllBytes(elfpath), elfpath);
+            //if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
+            //    FileList = container.SCEI_Names;
+            #endregion
+
             treeView1.Nodes.Clear();
             TreePopulate();
         }
@@ -494,7 +536,7 @@ namespace SCEIVag_Pack
                 if (save.ShowDialog() == DialogResult.OK)
                 {
                     #region Escrever Lista de Arquivos
-                        WriteToXML(GetEntries(false), save.FileName);
+                    WriteToXML(GetEntries(false, false), save.FileName);
                     #endregion
                 }
             }
@@ -516,7 +558,7 @@ namespace SCEIVag_Pack
 
                     #region Escrever Lista de Arquivos
                     if (FileList == null)
-                        WriteToXML(GetEntries(exportwav), savepath + @"\filelist.xml");
+                        WriteToXML(GetEntries(exportwav, false), savepath + @"\filelist.xml");
                     #endregion
 
                     var entriesScei = container.sCEI_Entries.Where(x => x.Pack_Offset.ToString("X2") != "FFFFFFFF").ToArray();
@@ -702,9 +744,7 @@ namespace SCEIVag_Pack
         }
         void ShowHideAnim()
         {
-            animBox.Visible = !animBox.Visible;
             animpanel.Visible = !animpanel.Visible;
-            animlbl.Visible = !animlbl.Visible;
         }
         async void Abrir(bool isDrag)
         {
@@ -754,7 +794,7 @@ namespace SCEIVag_Pack
                     break;
             }
         }
-        async void AbrirContainer(bool isDrag)
+        async void AbrirContainer(bool isDrag, string elfpath = "none")
         {
             switch (isDrag)
             {
@@ -768,10 +808,36 @@ namespace SCEIVag_Pack
                     if (filename != null)
                     {
                         #region Abrir
-                        var openELF = new OpenFileDialog();
-                        openELF.Filter = "Todos os arquivos(*.*)|*.*";
-                        openELF.Title = "Escolha um arquivo ELF";
-                        if (openELF.ShowDialog() == DialogResult.OK)
+
+                        if (elfpath == "none")
+                        {
+                            var openELF = new OpenFileDialog();
+                            openELF.Filter = "Todos os arquivos(*.*)|*.*";
+                            openELF.Title = "Escolha um arquivo ELF";
+                            if (openELF.ShowDialog() == DialogResult.OK)
+                            {
+                                fecharToolStripMenuItem1.Enabled = true;
+                                ShowHideAnim();
+                                await Task.Run(() =>
+                                {
+                                    Cursor.Current = Cursors.WaitCursor;
+                                    #region Abrir arquivo
+                                    container = new BINContainer(File.ReadAllBytes(filename),
+                                    File.ReadAllBytes(openELF.FileName), openELF.FileName);
+                                    container.caminhoELF = openELF.FileName;
+                                    if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
+                                        FileList = container.SCEI_Names;
+                                    #endregion
+                                    #region Adicionar na lista de IECS
+                                    listadeIECS = new ListadeIECS(this);
+                                });
+                                ShowHideAnim();
+                                Cursor.Current = Cursors.Arrow;
+                                listadeIECS.Show();
+                                #endregion
+                            }
+                        }
+                        else
                         {
                             fecharToolStripMenuItem1.Enabled = true;
                             ShowHideAnim();
@@ -780,8 +846,8 @@ namespace SCEIVag_Pack
                                 Cursor.Current = Cursors.WaitCursor;
                                 #region Abrir arquivo
                                 container = new BINContainer(File.ReadAllBytes(filename),
-                                File.ReadAllBytes(openELF.FileName), openELF.FileName);
-                                container.caminhoELF = openELF.FileName;
+                                File.ReadAllBytes(elfpath), elfpath);
+                                container.caminhoELF = elfpath;
                                 if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
                                     FileList = container.SCEI_Names;
                                 #endregion
@@ -817,7 +883,7 @@ namespace SCEIVag_Pack
                             filename = open.FileName;
                             fecharToolStripMenuItem1.Enabled = true;
                             ShowHideAnim();
-                            
+
                             await Task.Run(() =>
                             {
                                 Cursor.Current = Cursors.WaitCursor;
@@ -870,8 +936,17 @@ namespace SCEIVag_Pack
             var dropped = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (dropped.Length > 1)
             {
-                MessageBox.Show("Apenas 1 por vez!!", "Nope", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                return;
+                if (dropped.Any(x => Path.GetExtension(x).ToLower() == ".bin"))
+                {
+                    filename = dropped.Where(x => Path.GetExtension(x).ToLower() == ".bin").ToArray()[0];
+
+                    AbrirContainer(true, dropped.Where(x => Path.GetExtension(x).ToLower() != ".bin").ToArray()[0]);
+                }
+                else
+                {
+                    MessageBox.Show("Apenas 1 por vez!!", "Nope", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return;
+                }
             }
             else
             {
@@ -917,13 +992,6 @@ namespace SCEIVag_Pack
             Salvar();
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            animpanel.Visible = false;
-            timer1.Stop();
-            timer1.Enabled = false;
-        }
-
         private void recriarToolStripMenuItem_Click(object sender, EventArgs e)
         {
             RecriarContainer();
@@ -962,16 +1030,10 @@ namespace SCEIVag_Pack
                     AbrirContainer(true);
             }
         }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            player = new SoundPlayer(GetWav());
-            player.Play();
-        }
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (treeView1.SelectedNode != null)
-                if(treeView1.SelectedNode.Level==1)
+                if (treeView1.SelectedNode.Level == 1)
                 {
                     extrairToolStripMenuItem.Enabled = true;
                     importarVAGToolStripMenuItem.Enabled = true;
@@ -983,7 +1045,10 @@ namespace SCEIVag_Pack
                             player = null;
                         }
                         player = new SoundPlayer(GetWav());
-                        player.Play();
+                        if (GetSelected().Information.Loop == false)
+                            player.Play();
+                        else
+                            player.PlayLooping();
                     }
                     propertyGrid1.SelectedObject = GetSelected().Information;
                 }
@@ -1020,6 +1085,7 @@ namespace SCEIVag_Pack
 
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
+            if (treeView1.SelectedNode.Level == 1)
                 importarVAGToolStripMenuItem.PerformClick();
         }
 
@@ -1027,7 +1093,8 @@ namespace SCEIVag_Pack
         {
             if (e.Button == MouseButtons.Right)
             {
-                ctx_Iecs.Show(MousePosition);
+                if (treeView1.SelectedNode.Level == 1)
+                    ctx_Iecs.Show(MousePosition);
             }
         }
         private void bigEndianToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1052,8 +1119,20 @@ namespace SCEIVag_Pack
         {
             treeView1.CollapseAll();
         }
+        private void addToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AddForm = new AddForm(this);
+            if (AddForm.ShowDialog() == DialogResult.OK)
+                RefreshFile();
+        }
+
         #endregion
 
+        private void Main_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            //if(container!=null)
+            //    container.linkedELF.MergeXML(FileList);
 
+        }
     }
 }

@@ -105,7 +105,7 @@
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = global::SCEIVag_Pack.Properties.Resources.Logotipo;
+            this.pictureBox2.Image = global::SCEIVag_Pack.Properties.Resources.icon;
             this.pictureBox2.Location = new System.Drawing.Point(84, 48);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(86, 83);

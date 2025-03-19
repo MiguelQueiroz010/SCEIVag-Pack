@@ -109,66 +109,43 @@ namespace SCEIVag_Pack
             InternalName = Path.GetFileName(path);
 
         }
-        public void CreateXML()
+        public void MergeXML(Dictionary<string, string[]> entries)
         {
-            Stream xml = File.CreateText("config.xml").BaseStream;
+            Stream xml = File.OpenText($"elfbase.xml").BaseStream;
             XmlDocument doc = new XmlDocument();
-            XmlElement root = doc.CreateElement("CCS_ASSET_EDITOR_CONFIG");
+            doc.Load(xml); //Carregando o arquivo
+            XmlNodeList xnList = doc.GetElementsByTagName(InternalName);
 
-            #region Config Childs
-            #region Console
-            XmlElement consoleoptions = doc.CreateElement("Console");
+            foreach (XmlNode xn in xnList)
+            {
+                foreach (XmlNode node in xn.ChildNodes)
+                {
+                    switch (node.Name.ToLower())
+                    {
+                        case "filelist":
 
-            //Visible
-            var visible = doc.CreateElement("Visible");
-            //visible.AppendChild(doc.CreateTextNode(consoleToolStripMenuItem.Checked.ToString().ToLower()));
+                            foreach (XmlElement pointCoord in node.SelectNodes("Container"))
+                            {
+                                if (pointCoord != null)
+                                {
+                                    entries.TryGetValue(pointCoord.Attributes["name"].Value, out string[] values);
+                                    foreach (string file in values)
+                                    {
+                                        if (!pointCoord.InnerText.Contains(file))
+                                            pointCoord.InnerText += file+ "\r\n";
+                                    }
+                                }
+                            }
 
-            //RW Operations
-            var rwop = doc.CreateElement("Read-Write_Operations");
-            //rwop.AppendChild(doc.CreateTextNode(blocksReadWriteToolStripMenuItem.Checked.ToString().ToLower()));
-
-            //System Messages
-            var sysmsg = doc.CreateElement("System_Messages");
-            //sysmsg.AppendChild(doc.CreateTextNode(systemToolStripMenuItem1.Checked.ToString().ToLower()));
-
-            consoleoptions.AppendChild(visible);
-            consoleoptions.AppendChild(rwop);
-            consoleoptions.AppendChild(sysmsg);
-            #endregion
-
-            #region View Options
-            XmlElement viewopt = doc.CreateElement("View");
-
-            //Animations
-            var anim = doc.CreateElement("Animations");
-            //anim.AppendChild(doc.CreateTextNode(Animations.ToString().ToLower()));
-
-            viewopt.AppendChild(anim);
-            #endregion
-
-            #region Options
-            XmlElement opt = doc.CreateElement("Options");
-
-            //Default Texture Viewer/Editor
-            var defaulttexture = doc.CreateElement("Default_Texture_Viewer_Editor");
-            //defaulttexture.AppendChild(doc.CreateTextNode(DefaultTextureVE));
-
-            //Edit Texture Bool
-            var editexture = doc.CreateElement("Edit_Texture");
-            //editexture.AppendChild(doc.CreateTextNode(EditTexture.ToString().ToLower()));
-
-            opt.AppendChild(defaulttexture);
-            opt.AppendChild(editexture);
-            #endregion
-
-            root.AppendChild(consoleoptions);//Console Options
-            root.AppendChild(viewopt);//View Options
-            root.AppendChild(opt);//Options
-            #endregion
-
-            doc.AppendChild(root);
-            doc.Save(xml);
+                            break;
+                    }
+                }
+            }
             xml.Close();
+            File.Delete($"elfbase.xml");
+            var str = new FileStream($"elfbase.xml", FileMode.OpenOrCreate);
+            doc.Save(str);
+            str.Close();
         }
 
         public void GetXML(out Dictionary<int, int> tables, out Dictionary<string, string[]> filenames)
@@ -192,6 +169,7 @@ namespace SCEIVag_Pack
                     {
                         case "virtual":
                             virtualmem = Convert.ToBoolean(node.InnerText);
+                            
                             break;
                         case "table":
                             if (node.Attributes.Count > 0)

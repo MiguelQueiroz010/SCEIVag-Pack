@@ -74,6 +74,7 @@ namespace SCEIVag_Pack
                     f1.linkLabel1.Text = "Nome: " + Path.GetFileName(listView1.SelectedItems[0].SubItems[1].Text);
                     #endregion
                     f1.TreePopulate();
+                    f1.addToolStripMenuItem.Enabled = true;
                 }
             }
             else

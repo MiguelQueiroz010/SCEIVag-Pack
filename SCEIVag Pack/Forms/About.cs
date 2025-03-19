@@ -32,7 +32,7 @@ namespace SCEIVag_Pack
             ss.Dispose();
             Close();
             f01.Visible = true;
-            if(f01.listadeIECS !=null)
+            if(f01.listadeIECS != null && f01.listadeIECS.IsDisposed==false)
              f01.listadeIECS.Visible = true;
         }
 

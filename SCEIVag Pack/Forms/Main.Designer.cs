@@ -48,6 +48,7 @@
             this.treevmenuitem = new System.Windows.Forms.ToolStripMenuItem();
             this.bigEndianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.littleEndianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.containerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.extrairuniccon = new System.Windows.Forms.ToolStripMenuItem();
             this.extrairTudoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,7 +58,6 @@
             this.sobreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selecionarPlayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ativadoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.ctx_Iecs = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,15 +68,17 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.animpanel = new System.Windows.Forms.Panel();
-            this.animBox = new System.Windows.Forms.PictureBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.animlbl = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
             this.ctx_Iecs.SuspendLayout();
             this.scei_layout.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.animpanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.animBox)).BeginInit();
+            this.tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -109,14 +111,14 @@
             // abrirBINToolStripMenuItem
             // 
             this.abrirBINToolStripMenuItem.Name = "abrirBINToolStripMenuItem";
-            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.abrirBINToolStripMenuItem.Text = "Open Container";
             this.abrirBINToolStripMenuItem.Click += new System.EventHandler(this.abrirBINToolStripMenuItem_Click);
             // 
             // abrirIECToolStripMenuItem
             // 
             this.abrirIECToolStripMenuItem.Name = "abrirIECToolStripMenuItem";
-            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.abrirIECToolStripMenuItem.Text = "Open BHD";
             this.abrirIECToolStripMenuItem.Click += new System.EventHandler(this.abrirIECToolStripMenuItem_Click);
             // 
@@ -124,7 +126,7 @@
             // 
             this.salvarToolStripMenuItem.Enabled = false;
             this.salvarToolStripMenuItem.Name = "salvarToolStripMenuItem";
-            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.salvarToolStripMenuItem.Text = "Save";
             this.salvarToolStripMenuItem.Click += new System.EventHandler(this.salvarToolStripMenuItem_Click);
             // 
@@ -132,7 +134,7 @@
             // 
             this.salvarComoToolStripMenuItem.Enabled = false;
             this.salvarComoToolStripMenuItem.Name = "salvarComoToolStripMenuItem";
-            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.salvarComoToolStripMenuItem.Text = "Save As";
             this.salvarComoToolStripMenuItem.Click += new System.EventHandler(this.salvarComoToolStripMenuItem_Click);
             // 
@@ -140,14 +142,14 @@
             // 
             this.fecharToolStripMenuItem.Enabled = false;
             this.fecharToolStripMenuItem.Name = "fecharToolStripMenuItem";
-            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.fecharToolStripMenuItem.Text = "Close";
             this.fecharToolStripMenuItem.Click += new System.EventHandler(this.fecharToolStripMenuItem_Click);
             // 
             // sairToolStripMenuItem
             // 
             this.sairToolStripMenuItem.Name = "sairToolStripMenuItem";
-            this.sairToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.sairToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.sairToolStripMenuItem.Text = "Exit";
             this.sairToolStripMenuItem.Click += new System.EventHandler(this.sairToolStripMenuItem_Click);
             // 
@@ -158,7 +160,8 @@
             this.importarVAGToolStripMenuItem,
             this.extrairTodosToolStripMenuItem,
             this.toolStripMenuItem3,
-            this.treevmenuitem});
+            this.treevmenuitem,
+            this.addToolStripMenuItem});
             this.iECToolStripMenuItem.Name = "iECToolStripMenuItem";
             this.iECToolStripMenuItem.Size = new System.Drawing.Size(42, 20);
             this.iECToolStripMenuItem.Text = "SCEI";
@@ -167,7 +170,7 @@
             // 
             this.extrairToolStripMenuItem.Enabled = false;
             this.extrairToolStripMenuItem.Name = "extrairToolStripMenuItem";
-            this.extrairToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.extrairToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.extrairToolStripMenuItem.Text = "Extract VAG";
             this.extrairToolStripMenuItem.Click += new System.EventHandler(this.extrairToolStripMenuItem_Click);
             // 
@@ -175,7 +178,7 @@
             // 
             this.importarVAGToolStripMenuItem.Enabled = false;
             this.importarVAGToolStripMenuItem.Name = "importarVAGToolStripMenuItem";
-            this.importarVAGToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.importarVAGToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.importarVAGToolStripMenuItem.Text = "Import VAG";
             this.importarVAGToolStripMenuItem.Click += new System.EventHandler(this.importarVAGToolStripMenuItem_Click);
             // 
@@ -183,7 +186,7 @@
             // 
             this.extrairTodosToolStripMenuItem.Enabled = false;
             this.extrairTodosToolStripMenuItem.Name = "extrairTodosToolStripMenuItem";
-            this.extrairTodosToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.extrairTodosToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.extrairTodosToolStripMenuItem.Text = "Extract All";
             this.extrairTodosToolStripMenuItem.Click += new System.EventHandler(this.extrairTodosToolStripMenuItem_Click);
             // 
@@ -193,7 +196,7 @@
             this.toolStripMenuItem4,
             this.toolStripMenuItem5});
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(151, 22);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(159, 22);
             this.toolStripMenuItem3.Text = "VAG Endianess";
             // 
             // toolStripMenuItem4
@@ -217,7 +220,7 @@
             this.littleEndianToolStripMenuItem});
             this.treevmenuitem.Enabled = false;
             this.treevmenuitem.Name = "treevmenuitem";
-            this.treevmenuitem.Size = new System.Drawing.Size(151, 22);
+            this.treevmenuitem.Size = new System.Drawing.Size(159, 22);
             this.treevmenuitem.Text = "TreeView";
             // 
             // bigEndianToolStripMenuItem
@@ -233,6 +236,14 @@
             this.littleEndianToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.littleEndianToolStripMenuItem.Text = "Collapse All";
             this.littleEndianToolStripMenuItem.Click += new System.EventHandler(this.Collapse_Click);
+            // 
+            // addToolStripMenuItem
+            // 
+            this.addToolStripMenuItem.Enabled = false;
+            this.addToolStripMenuItem.Name = "addToolStripMenuItem";
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.addToolStripMenuItem.Text = "Add/Edit Entries";
+            this.addToolStripMenuItem.Click += new System.EventHandler(this.addToolStripMenuItem_Click);
             // 
             // containerToolStripMenuItem
             // 
@@ -312,11 +323,6 @@
             this.ativadoToolStripMenuItem.Text = "Auto Play";
             this.ativadoToolStripMenuItem.Click += new System.EventHandler(this.ativadoToolStripMenuItem_Click);
             // 
-            // timer1
-            // 
-            this.timer1.Interval = 2600;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
             // ctx_Iecs
             // 
             this.ctx_Iecs.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -326,20 +332,20 @@
             this.ctx_Iecs.Name = "ctx_Iecs";
             this.ctx_Iecs.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
             this.ctx_Iecs.ShowItemToolTips = false;
-            this.ctx_Iecs.Size = new System.Drawing.Size(146, 48);
+            this.ctx_Iecs.Size = new System.Drawing.Size(136, 48);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(145, 22);
-            this.toolStripMenuItem1.Text = "Extrair VAG";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(135, 22);
+            this.toolStripMenuItem1.Text = "Extract VAG";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.extrairToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(145, 22);
-            this.toolStripMenuItem2.Text = "Importar VAG";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(135, 22);
+            this.toolStripMenuItem2.Text = "Import VAG";
             this.toolStripMenuItem2.Click += new System.EventHandler(this.importarVAGToolStripMenuItem_Click);
             // 
             // scei_layout
@@ -368,6 +374,7 @@
             this.treeView1.TabIndex = 1;
             this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             this.treeView1.DoubleClick += new System.EventHandler(this.listView1_DoubleClick);
+            this.treeView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseClick);
             // 
             // tableLayoutPanel2
             // 
@@ -417,38 +424,53 @@
             // 
             // animpanel
             // 
-            this.animpanel.Controls.Add(this.animlbl);
-            this.animpanel.Controls.Add(this.animBox);
+            this.animpanel.Controls.Add(this.tableLayoutPanel1);
             this.animpanel.Location = new System.Drawing.Point(0, 24);
             this.animpanel.Name = "animpanel";
             this.animpanel.Size = new System.Drawing.Size(644, 434);
             this.animpanel.TabIndex = 2;
             this.animpanel.Visible = false;
             // 
-            // animBox
+            // tableLayoutPanel1
             // 
-            this.animBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.animBox.Image = global::SCEIVag_Pack.Properties.Resources.FMvz;
-            this.animBox.Location = new System.Drawing.Point(50, 45);
-            this.animBox.Name = "animBox";
-            this.animBox.Size = new System.Drawing.Size(533, 270);
-            this.animBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.animBox.TabIndex = 0;
-            this.animBox.TabStop = false;
-            this.animBox.Visible = false;
-            this.animBox.WaitOnLoad = true;
+            this.tableLayoutPanel1.ColumnCount = 1;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Controls.Add(this.animlbl, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.pictureBox1, 0, 1);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 4;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.646302F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 90.3537F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 66F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(644, 434);
+            this.tableLayoutPanel1.TabIndex = 0;
             // 
             // animlbl
             // 
             this.animlbl.AutoSize = true;
+            this.animlbl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.animlbl.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.animlbl.Location = new System.Drawing.Point(123, 321);
+            this.animlbl.Location = new System.Drawing.Point(3, 311);
             this.animlbl.Name = "animlbl";
-            this.animlbl.Size = new System.Drawing.Size(398, 39);
-            this.animlbl.TabIndex = 1;
+            this.animlbl.Size = new System.Drawing.Size(638, 56);
+            this.animlbl.TabIndex = 2;
             this.animlbl.Text = "Carregando as entradas...";
-            this.animlbl.Visible = false;
+            this.animlbl.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pictureBox1.Image = global::SCEIVag_Pack.Properties.Resources.FMvz;
+            this.pictureBox1.Location = new System.Drawing.Point(3, 33);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(638, 275);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 3;
+            this.pictureBox1.TabStop = false;
+            this.pictureBox1.WaitOnLoad = true;
             // 
             // Main
             // 
@@ -468,6 +490,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Main";
             this.Text = "SCEI Audio Pack Tool";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_FormClosed);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Form1_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Form1_DragEnter);
             this.menuStrip1.ResumeLayout(false);
@@ -478,8 +501,9 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.animpanel.ResumeLayout(false);
-            this.animpanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.animBox)).EndInit();
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -500,7 +524,6 @@
         public System.Windows.Forms.ToolStripMenuItem extrairTudoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem extrairTodosToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem salvarToolStripMenuItem;
-        public System.Windows.Forms.Timer timer1;
         public System.Windows.Forms.ToolStripMenuItem extrairuniccon;
         private System.Windows.Forms.ToolStripMenuItem fecharToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem abrirListaDeArquivosToolStripMenuItem;
@@ -525,8 +548,10 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
         public System.Windows.Forms.ToolStripMenuItem treevmenuitem;
-        public System.Windows.Forms.PictureBox animBox;
+        public System.Windows.Forms.ToolStripMenuItem addToolStripMenuItem;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         public System.Windows.Forms.Label animlbl;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
 
