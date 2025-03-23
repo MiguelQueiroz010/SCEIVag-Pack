@@ -151,7 +151,7 @@
             this.add_bt.Name = "add_bt";
             this.add_bt.Size = new System.Drawing.Size(71, 23);
             this.add_bt.TabIndex = 0;
-            this.add_bt.Text = "Add";
+            this.add_bt.Text = "Apply";
             this.add_bt.UseVisualStyleBackColor = true;
             this.add_bt.Click += new System.EventHandler(this.add_bt_Click);
             // 
@@ -161,7 +161,7 @@
             this.canc_bt.Name = "canc_bt";
             this.canc_bt.Size = new System.Drawing.Size(75, 23);
             this.canc_bt.TabIndex = 1;
-            this.canc_bt.Text = "Cancell";
+            this.canc_bt.Text = "Ok";
             this.canc_bt.UseVisualStyleBackColor = true;
             this.canc_bt.Click += new System.EventHandler(this.canc_bt_Click);
             // 

@@ -484,6 +484,14 @@ namespace SCEIVag_Pack
                 public byte[] ExtraData;
 
                 [Category("Audio Options")]
+                [Description("Set VAG index for Sample.")]
+                public UInt16 Vag_Index
+                {
+                    get => VAG_Id;
+                    set => VAG_Id = value;
+                }
+
+                [Category("Audio Options")]
                 [Description("Speed of the audio track.")]
                 public byte Speed
                 {

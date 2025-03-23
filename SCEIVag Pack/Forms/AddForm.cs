@@ -192,6 +192,7 @@ namespace SCEIVag_Pack.Forms
                 get => MainForm.sceifile._SampleSets.SampleSets;
                 set => MainForm.sceifile._SampleSets.SampleSets = value;
             }
+
         }
         public class DuplicateSample : INotifyPropertyChanged
         {
@@ -279,16 +280,85 @@ namespace SCEIVag_Pack.Forms
         }
         public class VAG_Info
         {
-            [Category("Edit Infos"),
-            DisplayName("Vags"),
-                Description("Visualize and edit VAGs audios array."),
-            TypeConverter(typeof(ExpandableObjectConverter))]
-            public IECS.VAGInfo.Information[] Infos
+            //[Category("Edit Infos"),
+            //DisplayName("Vags"),
+            //    Description("Visualize and edit VAGs audios array."),
+            //TypeConverter(typeof(ExpandableObjectConverter))]
+            //public IECS.VAGInfo.Information[] Infos
+            //{
+            //    get => MainForm.sceifile._Infos.VAG_Infos;
+            //    set => MainForm.sceifile._Infos.VAG_Infos = value;
+            //}
+
+            public class Folders : StringConverter
             {
-                get => MainForm.sceifile._Infos.VAG_Infos;
-                set => MainForm.sceifile._Infos.VAG_Infos = value;
+                public static List<string> data
+                {
+                    get
+                    {
+                        return Enumerable.Range(0, (int)MainForm.sceifile._Infos.VAG_Count).Select(
+                            x => $"VAG_Infos_{x}"
+                            ).ToList();
+                    }
+                    set { }
+                }
+
+                public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+                {
+                    return true; // Habilita a lista suspensa
+                }
+
+                public override bool GetStandardValuesExclusive(ITypeDescriptorContext context)
+                {
+                    return true; // Restringe a escolha às opções da lista
+                }
+
+                public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+                {
+                    return new StandardValuesCollection(data);
+                }
             }
-            
+            public string Choosed = "Select one entry...";
+            public IECS.VAGInfo.Information Selected;
+
+            [Category("Choosed Entry")]
+            [DisplayName("Entry")]
+            [TypeConverter(typeof(ExpandableObjectConverter))]
+            public IECS.VAGInfo.Information ChoosedEntry
+            {
+                get
+                {
+                    OnPropertyChanged(nameof(ChoosedEntry));
+                    return Selected;
+                }
+                set => Selected = value;
+            }
+
+            [Category("Edit VAG Information"),
+                Description("Choose one of these entries to edit."),
+                TypeConverter(typeof(Folders))]
+            public string Entries
+            {
+                get => Choosed;
+                set
+                {
+                    Choosed = value;
+
+                    // Adiciona uma nova propriedade quando "Item 1" for selecionado
+                    if (Choosed != null)
+                    {
+                        Selected = MainForm.sceifile._Infos.VAG_Infos[Convert.ToInt32(Choosed.Split(new string[]
+                        {"VAG_Infos_" }, StringSplitOptions.RemoveEmptyEntries)[0])];
+
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
 
@@ -330,8 +400,8 @@ namespace SCEIVag_Pack.Forms
                     break;
 
                 case Type_Add.EditSset:
-                    SSet sset = new SSet();
-                    add_box.SelectedObject = sset;
+                    DuplicateSSet eeSSet = new DuplicateSSet();
+                    add_box.SelectedObject = eeSSet;
                     break;
 
                 case Type_Add.DuplicateSample:
@@ -339,8 +409,8 @@ namespace SCEIVag_Pack.Forms
                     add_box.SelectedObject = duplicateSample;
                     break;
                 case Type_Add.EditSample:
-                    Sample sample = new Sample();
-                    add_box.SelectedObject = sample;
+                    DuplicateSample eSample = new DuplicateSample();
+                    add_box.SelectedObject = eSample;
                     break;
                 case Type_Add.EditVAG:
                     VAG_Info vag = new VAG_Info();
@@ -354,7 +424,7 @@ namespace SCEIVag_Pack.Forms
         #region Buttons and Events
         private void AddForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            
+            this.DialogResult = DialogResult.OK;
         }
 
         private void add_bt_Click(object sender, EventArgs e)
@@ -370,46 +440,68 @@ namespace SCEIVag_Pack.Forms
                     list_files.AddRange(MainForm.FileList[MainForm.listadeIECS.listView1.SelectedItems[0].SubItems[1].Text]);
                     list_files.Add($"S_FOLDER_{list_files.Count}");
                     MainForm.FileList[MainForm.listadeIECS.listView1.SelectedItems[0].SubItems[1].Text] = list_files.ToArray();
-
+                    MessageBox.Show("Entry edited!");
                     break;
 
                 case Type_Add.EditEntry:
                     Entry ent = new Entry();
                     ent = add_box.SelectedObject as Entry;
+                    MessageBox.Show("Entry edited!");
                     break;
 
                 case Type_Add.DuplicateSampleSet:
                     DuplicateSSet duplicateSSet = new DuplicateSSet();
                     duplicateSSet = add_box.SelectedObject as DuplicateSSet;
                     MainForm.sceifile._SampleSets.Add(duplicateSSet.ChoosedEntry);
+                    MessageBox.Show("Entry edited!");
                     break;
 
                 case Type_Add.EditSset:
-                    SSet sset = new SSet();
-                    sset = add_box.SelectedObject as SSet;
+                    DuplicateSSet edSampleSet = new DuplicateSSet();
+                    edSampleSet = add_box.SelectedObject as DuplicateSSet;
+                    if (MainForm.sceifile._Samples.VAG_Samples.Length < edSampleSet.ChoosedEntry.SampleIndex)
+                    {
+                        MessageBox.Show("Sample Index is higher than Samples array length.",
+                            "Link Index Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    }
+                    else
+                        MessageBox.Show("Entry edited!");
                     break;
 
                 case Type_Add.DuplicateSample:
                     DuplicateSample duplicateSample = new DuplicateSample();
                     duplicateSample = add_box.SelectedObject as DuplicateSample;
                     MainForm.sceifile._Samples.Add(duplicateSample.ChoosedEntry);
+                    MessageBox.Show("Entry edited!");
                     break;
                 case Type_Add.EditSample:
-                    Sample sample = new Sample();
-                    sample = add_box.SelectedObject as Sample;
+                    DuplicateSample edSample = new DuplicateSample();
+                    edSample = add_box.SelectedObject as DuplicateSample;
+                    if (MainForm.sceifile._Infos.VAG_Infos.Length < edSample.ChoosedEntry.Vag_Index)
+                    {
+                        MessageBox.Show("VAG Index is higher than VAG_Infos array length.",
+                            "Link Index Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    }
+                    else
+                        MessageBox.Show("Entry edited!");
                     break;
                 case Type_Add.EditVAG:
                     VAG_Info vag = new VAG_Info();
                     vag = add_box.SelectedObject as VAG_Info;
-
+                    MessageBox.Show("Entry edited!");
+                    break;
+                default:
+                    
                     break;
             }
-            this.DialogResult = DialogResult.OK;
+            
         }
 
         private void canc_bt_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
+            this.DialogResult = DialogResult.OK;
         }
    
         private void type_select_SelectedIndexChanged(object sender, EventArgs e)
