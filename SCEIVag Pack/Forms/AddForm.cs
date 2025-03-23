@@ -22,7 +22,6 @@ namespace SCEIVag_Pack.Forms
         }
         public class Duplicate : INotifyPropertyChanged
         {
-           
             public class Folders : StringConverter
             {
                 public static List<string> data 
@@ -97,16 +96,84 @@ namespace SCEIVag_Pack.Forms
         }
         public class Entry 
         {
-            [Category("Edit Program Entries"),
-            DisplayName("Entry"),
-                Description("Visualize and edit entries array."),
-            TypeConverter(typeof(ExpandableObjectConverter))]
-            public IECS.Prog.Entry[] Entries
+            //[Category("Edit Program Entries"),
+            //DisplayName("Entry"),
+            //    Description("Visualize and edit entries array."),
+            //TypeConverter(typeof(ExpandableObjectConverter))]
+            //public IECS.Prog.Entry[] Entries
+            //{
+            //    get => MainForm.sceifile._Program.Entries;
+            //    set => MainForm.sceifile._Program.Entries = value;
+            //}
+            public class Folders : StringConverter
             {
-                get => MainForm.sceifile._Program.Entries;
-                set => MainForm.sceifile._Program.Entries = value;
+                public static List<string> data
+                {
+                    get
+                    {
+                        return Enumerable.Range(0, MainForm.treeView1.Nodes.Count).Select(
+                            x => MainForm.treeView1.Nodes[x].Text
+                            ).ToList();
+                    }
+                    set { }
+                }
+
+                public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+                {
+                    return true; // Habilita a lista suspensa
+                }
+
+                public override bool GetStandardValuesExclusive(ITypeDescriptorContext context)
+                {
+                    return true; // Restringe a escolha às opções da lista
+                }
+
+                public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+                {
+                    return new StandardValuesCollection(data);
+                }
+            }
+            public string Choosed = "Select one entry...";
+            public IECS.Prog.Entry Selected;
+
+            [Category("Choosed Entry")]
+            [DisplayName("Entry")]
+            [TypeConverter(typeof(ExpandableObjectConverter))]
+            public IECS.Prog.Entry ChoosedEntry
+            {
+                get
+                {
+                    OnPropertyChanged(nameof(ChoosedEntry));
+                    return Selected;
+                }
+                set => Selected = value;
             }
 
+            [Category("Edit Entry"),
+                Description("Choose one of these entries to edit."),
+                TypeConverter(typeof(Folders))]
+            public string Entries
+            {
+                get => Choosed;
+                set
+                {
+                    Choosed = value;
+
+                    // Adiciona uma nova propriedade quando "Item 1" for selecionado
+                    if (Choosed != null)
+                    {
+                        Selected = MainForm.treeView1.Nodes.Cast<SCEINode>().Where
+                            (x => x.Text == Choosed).ToArray()[0].Entry;
+
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
 
         }
         public class DuplicateSSet : INotifyPropertyChanged
@@ -183,14 +250,83 @@ namespace SCEIVag_Pack.Forms
         }
         public class SSet
         {
-            [Category("Edit SampleSets"),
-            DisplayName("SampleSets"),
-                Description("Visualize and edit SampleSets array."),
-            TypeConverter(typeof(ExpandableObjectConverter))]
-            public IECS.Sset.SampleSet[] SampleSets
+            //[Category("Edit SampleSets"),
+            //DisplayName("SampleSets"),
+            //    Description("Visualize and edit SampleSets array."),
+            //TypeConverter(typeof(ExpandableObjectConverter))]
+            //public IECS.Sset.SampleSet[] SampleSets
+            //{
+            //    get => MainForm.sceifile._SampleSets.SampleSets;
+            //    set => MainForm.sceifile._SampleSets.SampleSets = value;
+            //}
+            public class Folders : StringConverter
             {
-                get => MainForm.sceifile._SampleSets.SampleSets;
-                set => MainForm.sceifile._SampleSets.SampleSets = value;
+                public static List<string> data
+                {
+                    get
+                    {
+                        return Enumerable.Range(0, MainForm.sceifile._SampleSets.SampleSet_Count).Select(
+                            x => $"SampleSet_{x}"
+                            ).ToList();
+                    }
+                    set { }
+                }
+
+                public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+                {
+                    return true; // Habilita a lista suspensa
+                }
+
+                public override bool GetStandardValuesExclusive(ITypeDescriptorContext context)
+                {
+                    return true; // Restringe a escolha às opções da lista
+                }
+
+                public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+                {
+                    return new StandardValuesCollection(data);
+                }
+            }
+            public string Choosed = "Select one entry...";
+            public IECS.Sset.SampleSet Selected;
+
+            [Category("Choosed Entry")]
+            [DisplayName("Entry")]
+            [TypeConverter(typeof(ExpandableObjectConverter))]
+            public IECS.Sset.SampleSet ChoosedEntry
+            {
+                get
+                {
+                    OnPropertyChanged(nameof(ChoosedEntry));
+                    return Selected;
+                }
+                set => Selected = value;
+            }
+
+            [Category("Edit SampleSet"),
+                Description("Choose one of these entries to edit."),
+                TypeConverter(typeof(Folders))]
+            public string Entries
+            {
+                get => Choosed;
+                set
+                {
+                    Choosed = value;
+
+                    // Adiciona uma nova propriedade quando "Item 1" for selecionado
+                    if (Choosed != null)
+                    {
+                        Selected = MainForm.sceifile._SampleSets.SampleSets[Convert.ToInt32(Choosed.Split(new string[]
+                        {"SampleSet_" }, StringSplitOptions.RemoveEmptyEntries)[0])];
+
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
 
         }
@@ -268,14 +404,83 @@ namespace SCEIVag_Pack.Forms
         }
         public class Sample
         {
-            [Category("Edit Samples"),
-            DisplayName("Samples"),
-                Description("Visualize and edit Samples array."),
-            TypeConverter(typeof(ExpandableObjectConverter))]
-            public IECS.VagSamples.Sample[] Samples
+            //[Category("Edit Samples"),
+            //DisplayName("Samples"),
+            //    Description("Visualize and edit Samples array."),
+            //TypeConverter(typeof(ExpandableObjectConverter))]
+            //public IECS.VagSamples.Sample[] Samples
+            //{
+            //    get => MainForm.sceifile._Samples.VAG_Samples;
+            //    set => MainForm.sceifile._Samples.VAG_Samples = value;
+            //}
+            public class Folders : StringConverter
             {
-                get => MainForm.sceifile._Samples.VAG_Samples;
-                set => MainForm.sceifile._Samples.VAG_Samples = value;
+                public static List<string> data
+                {
+                    get
+                    {
+                        return Enumerable.Range(0, MainForm.sceifile._Samples.Samples_Count).Select(
+                            x => $"Sample_{x}"
+                            ).ToList();
+                    }
+                    set { }
+                }
+
+                public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+                {
+                    return true; // Habilita a lista suspensa
+                }
+
+                public override bool GetStandardValuesExclusive(ITypeDescriptorContext context)
+                {
+                    return true; // Restringe a escolha às opções da lista
+                }
+
+                public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+                {
+                    return new StandardValuesCollection(data);
+                }
+            }
+            public string Choosed = "Select one entry...";
+            public IECS.VagSamples.Sample Selected;
+
+            [Category("Choosed Entry")]
+            [DisplayName("Entry")]
+            [TypeConverter(typeof(ExpandableObjectConverter))]
+            public IECS.VagSamples.Sample ChoosedEntry
+            {
+                get
+                {
+                    OnPropertyChanged(nameof(ChoosedEntry));
+                    return Selected;
+                }
+                set => Selected = value;
+            }
+
+            [Category("Edit Sample"),
+                Description("Choose one of these entries to edit."),
+                TypeConverter(typeof(Folders))]
+            public string Entries
+            {
+                get => Choosed;
+                set
+                {
+                    Choosed = value;
+
+                    // Adiciona uma nova propriedade quando "Item 1" for selecionado
+                    if (Choosed != null)
+                    {
+                        Selected = MainForm.sceifile._Samples.VAG_Samples[Convert.ToInt32(Choosed.Split(new string[]
+                        {"Sample_" }, StringSplitOptions.RemoveEmptyEntries)[0])];
+
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
         public class VAG_Info
@@ -401,7 +606,7 @@ namespace SCEIVag_Pack.Forms
                     break;
 
                 case Type_Add.EditSset:
-                    DuplicateSSet eeSSet = new DuplicateSSet();
+                    SSet eeSSet = new SSet();
                     add_box.SelectedObject = eeSSet;
                     break;
 
@@ -410,7 +615,7 @@ namespace SCEIVag_Pack.Forms
                     add_box.SelectedObject = duplicateSample;
                     break;
                 case Type_Add.EditSample:
-                    DuplicateSample eSample = new DuplicateSample();
+                    Sample eSample = new Sample();
                     add_box.SelectedObject = eSample;
                     break;
                 case Type_Add.EditVAG:
@@ -445,6 +650,7 @@ namespace SCEIVag_Pack.Forms
                     list_files.AddRange(MainForm.FileList[MainForm.listadeIECS.listView1.SelectedItems[0].SubItems[1].Text]);
                     list_files.Add($"S_FOLDER_{list_files.Count}");
                     MainForm.FileList[MainForm.listadeIECS.listView1.SelectedItems[0].SubItems[1].Text] = list_files.ToArray();
+                    MainForm.RefreshFile();
                     MessageBox.Show("Entry added!");
                     break;
 
