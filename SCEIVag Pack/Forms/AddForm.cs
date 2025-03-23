@@ -371,7 +371,8 @@ namespace SCEIVag_Pack.Forms
             EditSset = 3,
             DuplicateSample = 4,
             EditSample = 5,
-            EditVAG = 6
+            EditVAG = 6,
+            DuplicateVag = 7
         };
 
         #region Functions
@@ -416,6 +417,10 @@ namespace SCEIVag_Pack.Forms
                     VAG_Info vag = new VAG_Info();
                     add_box.SelectedObject = vag;
                     break;
+                case Type_Add.DuplicateVag:
+                    VAG_Info dupvag = new VAG_Info();
+                    add_box.SelectedObject = dupvag;
+                    break;
             }
         }
 
@@ -440,7 +445,7 @@ namespace SCEIVag_Pack.Forms
                     list_files.AddRange(MainForm.FileList[MainForm.listadeIECS.listView1.SelectedItems[0].SubItems[1].Text]);
                     list_files.Add($"S_FOLDER_{list_files.Count}");
                     MainForm.FileList[MainForm.listadeIECS.listView1.SelectedItems[0].SubItems[1].Text] = list_files.ToArray();
-                    MessageBox.Show("Entry edited!");
+                    MessageBox.Show("Entry added!");
                     break;
 
                 case Type_Add.EditEntry:
@@ -466,7 +471,7 @@ namespace SCEIVag_Pack.Forms
                         break;
                     }
                     else
-                        MessageBox.Show("Entry edited!");
+                        MessageBox.Show("Entry added!");
                     break;
 
                 case Type_Add.DuplicateSample:
@@ -485,12 +490,18 @@ namespace SCEIVag_Pack.Forms
                         break;
                     }
                     else
-                        MessageBox.Show("Entry edited!");
+                        MessageBox.Show("Entry added!");
                     break;
                 case Type_Add.EditVAG:
                     VAG_Info vag = new VAG_Info();
                     vag = add_box.SelectedObject as VAG_Info;
                     MessageBox.Show("Entry edited!");
+                    break;
+                case Type_Add.DuplicateVag:
+                    VAG_Info dupvag = new VAG_Info();
+                    dupvag = add_box.SelectedObject as VAG_Info;
+                    MainForm.sceifile._Infos.Add(dupvag.ChoosedEntry);
+                    MessageBox.Show("Entry added!");
                     break;
                 default:
                     

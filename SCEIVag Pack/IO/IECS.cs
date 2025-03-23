@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Text;
 using System.Security.AccessControl;
+using static SCEIVag_Pack.IECS;
 
 namespace SCEIVag_Pack
 {
@@ -238,6 +239,21 @@ namespace SCEIVag_Pack
         }
         public class VAGInfo : Section
         {
+            public void Add(Information entry)
+            {
+                var list = VAG_Infos.ToList();
+                list.Add(entry);
+                //entry.CreatedNow = true;
+                VAG_Infos = list.ToArray();
+                VAG_Count = (uint)VAG_Infos.Length;
+            }
+            public void AddRange(Information[] entries)
+            {
+                var list = VAG_Infos.ToList();
+                list.AddRange(entries);
+                VAG_Infos = list.ToArray();
+                VAG_Count = (uint)VAG_Infos.Length;
+            }
             public class Information
             {
                 public Stream GetWav()

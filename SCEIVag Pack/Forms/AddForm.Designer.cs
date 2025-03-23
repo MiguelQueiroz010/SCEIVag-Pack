@@ -122,7 +122,8 @@
             "Edit SampleSet",
             "Duplicate Sample",
             "Edit Sample",
-            "Edit VAG_Informations"});
+            "Edit VAG_Informations",
+            "Duplicate VAG_Informations"});
             this.type_select.Location = new System.Drawing.Point(113, 3);
             this.type_select.Name = "type_select";
             this.type_select.Size = new System.Drawing.Size(175, 21);
