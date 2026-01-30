@@ -1122,6 +1122,9 @@ namespace SCEIVag_Pack
 
             internal int[] Repeated_Indices;
 
+            //UN1 USE ONLY
+            internal byte[] PCMStream;
+
             internal static SCEI_Entry Read(byte[] input, int offset, bool excluded = false) => new SCEI_Entry()
             {
                 Pack_Offset = (int)input.ReadUInt(0, 32),
@@ -1152,12 +1155,13 @@ namespace SCEIVag_Pack
         public byte[] Container;
         public byte[] currentContainer;
         public string caminhoELF;
+        public string ContainerName;
 
         public ELFO linkedELF;
         internal List<SCEI_Entry> sCEI_Entries;
         internal Dictionary<int, int> SCEI_Tables;
         internal Dictionary<string, string[]> SCEI_Names;
-        public BINContainer(byte[] input, byte[] ELF, string elfpath)
+        public BINContainer(byte[] input, byte[] ELF, string elfpath, bool ultimateninja1 = false, string containername = "")
         {
             Container = input;
 
@@ -1169,45 +1173,103 @@ namespace SCEIVag_Pack
             linkedELF.GetXML(out SCEI_Tables, out SCEI_Names);
 
             #region Read Scei Entries
-            foreach (var table in SCEI_Tables)
+            if (ultimateninja1)
             {
-                for (int i = table.Key; i < table.Value; i += 0xC)
+                ContainerName = containername;
+                int index = linkedELF.tablesNames.IndexOf(linkedELF.tablesNames.Where(x => x.Contains(containername)).ToArray()[0]);
+                var table = SCEI_Tables.ElementAt(index);
+                for (int i = table.Key; i < table.Value; i += 8)
                 {
-                    byte[] Entry = ReadBlock(linkedELF.ELF, (uint)i, 0xC);
-                    var newEntry = SCEI_Entry.Read(Entry, i);
-                    sCEI_Entries.Add(newEntry);
-                    //RESOLVER ENTRADA FANTASMA QUE NÃO ESTÁ NO ELF::Entrada removida na reconstrução
+                    uint offset = linkedELF.ELF.ReadUInt(i, 32);
+                    uint size = linkedELF.ELF.ReadUInt(i + 4, 32);
+
+                    var newEntry = new SCEI_Entry();
+
+                    if (i == table.Key && offset != 0)
+                    {
+                        uint size2 = offset;
+                        offset = 0;
+
+                        //Offset 0 adjustment
+                        newEntry.VAGStream_AftrProg_Offset = (int)offset;
+                        newEntry.PackStream_Length = (int)size2;
+                        sCEI_Entries.Add(newEntry);
+                        offset = size2;
+
+                        //Next Entry adjustment
+                        newEntry.VAGStream_AftrProg_Offset = (int)offset;
+                        newEntry.PackStream_Length = (int)size;
+                        sCEI_Entries.Add(newEntry);
+                    }
+                    else if (i == table.Key && size == 0)
+                    {
+                        size = linkedELF.ELF.ReadUInt(i + 8, 32); //Next entry offset serving as Size!
+                        newEntry.VAGStream_AftrProg_Offset = (int)offset;
+                        newEntry.PackStream_Length = (int)size;
+                        sCEI_Entries.Add(newEntry);
+                    }
+                    else //CONTINUE NORMALLY
+                    {
+                        newEntry.VAGStream_AftrProg_Offset = (int)offset;
+                        newEntry.PackStream_Length = (int)size;
+                        sCEI_Entries.Add(newEntry);
+                    }
+
+
                 }
+            }
+            else
+            {
+                foreach (var table in SCEI_Tables)
+                {
+
+                    for (int i = table.Key; i < table.Value; i += 0xC)
+                    {
+                        byte[] Entry = ReadBlock(linkedELF.ELF, (uint)i, 0xC);
+                        var newEntry = SCEI_Entry.Read(Entry, i);
+                        sCEI_Entries.Add(newEntry);
+                        //RESOLVER ENTRADA FANTASMA QUE NÃO ESTÁ NO ELF::Entrada removida na reconstrução
+                    }
 
 #if DEBUG
-                sCEI_Entries = sCEI_Entries.Take(2).ToList();
+                    sCEI_Entries = sCEI_Entries.Take(2).ToList();
 #endif
-                foreach (var entry in sCEI_Entries)
-                {
-                    var repeatedIndices = new List<int>();
-                    for (int k = 0; k < sCEI_Entries.Count; k++)
+                    foreach (var entry in sCEI_Entries)
                     {
-                        if (sCEI_Entries[k].Pack_Offset == entry.Pack_Offset)
-                            repeatedIndices.Add(k);
+                        var repeatedIndices = new List<int>();
+                        for (int k = 0; k < sCEI_Entries.Count; k++)
+                        {
+                            if (sCEI_Entries[k].Pack_Offset == entry.Pack_Offset)
+                                repeatedIndices.Add(k);
+                        }
+                        entry.Repeated_Indices = repeatedIndices.ToArray();
                     }
-                    entry.Repeated_Indices = repeatedIndices.ToArray();
+
+
+
                 }
-
-
-
             }
             #endregion
 
             #region Read SCEIPACKS
-            foreach (SCEI_Entry sc_entry in sCEI_Entries)
+            if(ultimateninja1)
             {
-                if (sc_entry.Pack_Offset.ToString("X2") != "FFFFFFFF")
+                foreach (SCEI_Entry sc_entry in sCEI_Entries)
                 {
-                    byte[] iecs = ReadBlock(input, (uint)sc_entry.Pack_Offset, (uint)sc_entry.Pack_Size);
-                    var sceiFile = new IECS(iecs);
-                    sc_entry.scei_File = sceiFile;
+                    byte[] pcm = ReadBlock(input, (uint)sc_entry.VAGStream_AftrProg_Offset, (uint)sc_entry.PackStream_Length);
+                    sc_entry.PCMStream = pcm;
                 }
             }
+            else
+                foreach (SCEI_Entry sc_entry in sCEI_Entries)
+                {
+                    if (sc_entry.Pack_Offset.ToString("X2") != "FFFFFFFF")
+                    {
+                        byte[] iecs = ReadBlock(input, (uint)sc_entry.Pack_Offset, (uint)sc_entry.Pack_Size);
+                        var sceiFile = new IECS(iecs);
+                        sc_entry.scei_File = sceiFile;
+                    }
+                }
 
             #endregion
 

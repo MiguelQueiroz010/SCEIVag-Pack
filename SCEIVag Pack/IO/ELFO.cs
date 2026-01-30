@@ -148,10 +148,11 @@ namespace SCEIVag_Pack
             str.Close();
         }
 
+        public List<string> tablesNames;
         public void GetXML(out Dictionary<int, int> tables, out Dictionary<string, string[]> filenames)
         {
             var tablesinp = new Dictionary<int, int>();
-            var tablesnam = new List<string>();
+            tablesNames = new List<string>();
             var dict = new Dictionary<string, string[]>();
             #region Leitor XML
             Stream xml = File.OpenText($"elfbase.xml").BaseStream;
@@ -174,11 +175,11 @@ namespace SCEIVag_Pack
                         case "table":
                             if (node.Attributes.Count > 0)
                             {
-                                tablesnam.Add(node.Attributes["name"].Value);
+                                tablesNames.Add(node.Attributes["name"].Value);
                             }
                             else
                             {
-                                tablesnam.Add("Tabela " + tablec.ToString());
+                                tablesNames.Add("Tabela " + tablec.ToString());
                             }
                             string[] values = node.InnerText.Split(new string[] { ",", " " }, StringSplitOptions.RemoveEmptyEntries);
                             int start = Convert.ToInt32(values[0], 16) + shift;

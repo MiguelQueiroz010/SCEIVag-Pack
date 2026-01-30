@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
-
+using WMPLib;
 
 namespace SCEIVag_Pack
 {
@@ -26,9 +26,10 @@ namespace SCEIVag_Pack
         public static bool VAGEndianess_Big = true;
 
         public SoundPlayer player;
+        public WindowsMediaPlayer WPlayer = new WMPLib.WindowsMediaPlayer();
 
         public string filename;
-        public bool reprodz = true;
+        public bool reprodz = true, UN1 = false;
         public Dictionary<string, string[]> FileList;
         public AddForm AddForm;
         public Main()
@@ -95,14 +96,41 @@ namespace SCEIVag_Pack
             return dict;
         }
         public SCEINode GetSelected() => treeView1.SelectedNode as SCEINode;
-        public Stream GetWav()
+        public Stream GetWav(int nin1freq = 24000)
         {
             var node = GetSelected();
-            byte[] vag = node.Information.VAG;
-            byte[] PCM = ADPCM.ToPCMMono(vag, vag.Length);
-            byte[] wav = ADPCM.PCMtoWAV(PCM, node.Information._hz, 1);
-            var mem = new MemoryStream(wav);
-            return mem;
+
+            if (!UN1)
+            {
+                byte[] vag = node.Information.VAG;
+                byte[] PCM = ADPCM.ToPCMMono(vag, vag.Length);
+                byte[] wav = ADPCM.PCMtoWAV(PCM, node.Information._hz, 1);
+
+                var mem = new MemoryStream(wav);
+                return mem;
+            }
+            else
+            {
+                byte[] wav = ADPCM.PCMtoWAV(node.SCEntry.PCMStream, nin1freq, 2);
+                var mem = new MemoryStream(wav);
+
+                axWindowsMediaPlayer1.Ctlcontrols.stop();
+                axWindowsMediaPlayer1.URL = "";
+
+
+                if (File.Exists("actual.wav"))
+                    try { File.Delete("actual.wav"); }
+                    catch { /* ignora erro de arquivo em uso */ }
+
+                var file = new FileStream("actual.wav", FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                file.Write(wav, 0, wav.Length);
+                file.Close();
+
+                axWindowsMediaPlayer1.URL = "actual.wav";
+                axWindowsMediaPlayer1.Ctlcontrols.play();
+                return mem;
+            }
+                
         }
         public void WriteToXML(Dictionary<string, string[]> entries, string savexml)
         {
@@ -136,43 +164,63 @@ namespace SCEIVag_Pack
         public void TreePopulate()
         {
             int i = 0, f = 0;
-            foreach (var vgs in sceifile._Program.Entries)
+            if (UN1)
             {
+                var folder = new SCEINode();
+                folder.Text = $"Root_Scei";
+                foreach (var sgs in container.sCEI_Entries)
+                {
+                    var item = new SCEINode();
+                    item.SCEntry = sgs;
+                    item.Text = $"Audio {f}.pcm";
 
-                var item = new SCEINode();
-                item.Entry = vgs;
-                if (vgs.CreatedNow)
-                    item.ForeColor = Color.Red;
+                    folder.Nodes.Add(item);
+                    f++;
+                }
+                if (folder.Nodes.Count > 1)
+                    folder.Expand();
+                treeView1.Nodes.Add(folder);
+                treeView1.Visible = true;
+            }
+            else {
+                foreach (var vgs in sceifile._Program.Entries)
+                {
 
-                item.Text = $"Folder_{f}_Scei";
+                    var item = new SCEINode();
+                    item.Entry = vgs;
+                    if (vgs.CreatedNow)
+                        item.ForeColor = Color.Red;
 
-                if (FileList != null)
-                    item.Text = FileList.ElementAt(Convert.ToInt32(listadeIECS.listView1.SelectedItems[0].SubItems[0].Text)).Value[f];
+                    item.Text = $"Folder_{f}_Scei";
 
-                i = 0;
-                if (vgs.Extent_Count > 0)
-                    foreach (var extent in vgs.Extents)
-                    {
-                        var subitem = new SCEINode();
-                        string vagname = "Audio Stream_" + i.ToString();
+                    if (FileList != null)
+                        item.Text = FileList.ElementAt(Convert.ToInt32(listadeIECS.listView1.SelectedItems[0].SubItems[0].Text)).Value[f];
 
-                        int ssetid = extent.Index;
-                        int sampleid = sceifile._SampleSets.SampleSets[ssetid].SampleID;
-                        int infoid = sceifile._Samples.VAG_Samples[sampleid].VAG_Id;
+                    i = 0;
+                    if (vgs.Extent_Count > 0)
+                        foreach (var extent in vgs.Extents)
+                        {
+                            var subitem = new SCEINode();
+                            string vagname = "Audio Stream_" + i.ToString();
 
-                        subitem.Information = sceifile._Infos.VAG_Infos[infoid];
-                        subitem.Entry = vgs;
-                        subitem.Sample = sceifile._Samples.VAG_Samples[sampleid];
-                        subitem.SampleSet = sceifile._SampleSets.SampleSets[ssetid];
+                            int ssetid = extent.Index;
+                            int sampleid = sceifile._SampleSets.SampleSets[ssetid].SampleID;
+                            int infoid = sceifile._Samples.VAG_Samples[sampleid].VAG_Id;
 
-                        subitem.Text = vagname;
-                        item.Nodes.Add(subitem);
-                        i++;
-                    }
-                if (item.Nodes.Count > 1)
-                    item.Expand();
-                treeView1.Nodes.Add(item);
-                f++;
+                            subitem.Information = sceifile._Infos.VAG_Infos[infoid];
+                            subitem.Entry = vgs;
+                            subitem.Sample = sceifile._Samples.VAG_Samples[sampleid];
+                            subitem.SampleSet = sceifile._SampleSets.SampleSets[ssetid];
+
+                            subitem.Text = vagname;
+                            item.Nodes.Add(subitem);
+                            i++;
+                        }
+                    if (item.Nodes.Count > 1)
+                        item.Expand();
+                    treeView1.Nodes.Add(item);
+                    f++;
+                }
             }
             if (!scei_layout.Visible)
                 ShowHide();
@@ -210,7 +258,12 @@ namespace SCEIVag_Pack
                 byte[] VAG = node.Information.VAG;
                 if (save.FilterIndex == 1)
                 {
-                    File.WriteAllBytes(save.FileName, ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), node.Information._hz, 1));
+                    if(UN1)
+                    {
+                        File.WriteAllBytes(save.FileName, ADPCM.PCMtoWAV(node.SCEntry.PCMStream, container.ContainerName.Contains("bgm") ? 48000 : 24000, 2));
+                    }
+                    else
+                        File.WriteAllBytes(save.FileName, ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), node.Information._hz, 1));
                 }
                 else
                 {
@@ -460,64 +513,74 @@ namespace SCEIVag_Pack
                     Directory.CreateDirectory(folder);
                 #endregion
 
-                int i = 0;
-                foreach (var vag in sceifile._Infos.VAG_Infos)
+
+                if (UN1)
                 {
-
-
-                    byte[] VAG = vag.VAG;
-
-                    string name = node.Text.Substring(0, node.Text.Length - 4);
-
-                    var VAGbits = new List<byte>();
-                    var VAGStream = new List<byte>();
-
-                    if (VAGEndianess_Big)
+                    int f = 0;
+                    foreach (var pcm in container.sCEI_Entries)
                     {
-                        VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20).Reverse().ToArray());
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.VAG.Length).Reverse().ToArray());
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag._hz).Reverse().ToArray());
+                        File.WriteAllBytes(folder + @"\" + $"Audio {f}.wav", ADPCM.PCMtoWAV(pcm.PCMStream, container.ContainerName.Contains("bgm") ? 48000 : 24000, 2));
+                        f++;
                     }
-                    else
-                    {
-                        VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20));
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.VAG.Length));
-                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag._hz));
-                    }
-                    VAGbits.AddRange(BitConverter.GetBytes((UInt64)0));
-                    VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
-                    var namex = new byte[0x10];
-                    VAGbits.AddRange(namex);
-
-                    VAGStream.AddRange(VAG);
-
-                    while (VAGStream.Count < node.Information.VAG.Length)
-                        VAGStream.Add(0);
-
-                    VAGbits.AddRange(VAGStream.ToArray());
-
-                    if (exportwav)
-                    {
-                        File.WriteAllBytes(folder + @"\" + name + ".wav", ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag._hz, 1));
-                    }
-                    else
-                    {
-                        File.WriteAllBytes(folder + @"\" + name + ".vag", VAGbits.ToArray());
-                    }
-
-                    i++;
                 }
-                int index = listadeIECS.listView1.SelectedIndices[0];
-                int Entryindex = Convert.ToInt32(listadeIECS.listView1.Items[index].SubItems[0].Text);
-                byte[] IEC = container.Container.ReadBytes(container.sCEI_Entries[Entryindex].Pack_Offset,
-                    container.sCEI_Entries[Entryindex].Pack_Size);
-                string saveiec = folder + @"\" + "IECS" + i.ToString() + ".bhd";
-                File.WriteAllBytes(saveiec, IEC);
+                else
+                {
+                    int i = 0;
+                    foreach (var vag in sceifile._Infos.VAG_Infos)
+                    {
+                        byte[] VAG = vag.VAG;
 
+                        string name = node.Text.Substring(0, node.Text.Length - 4);
+
+                        var VAGbits = new List<byte>();
+                        var VAGStream = new List<byte>();
+
+                        if (VAGEndianess_Big)
+                        {
+                            VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20).Reverse().ToArray());
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.VAG.Length).Reverse().ToArray());
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag._hz).Reverse().ToArray());
+                        }
+                        else
+                        {
+                            VAGbits.AddRange(Encoding.Default.GetBytes("VAGp"));
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)0x20));
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag.VAG.Length));
+                            VAGbits.AddRange(BitConverter.GetBytes((UInt32)vag._hz));
+                        }
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt64)0));
+                        VAGbits.AddRange(BitConverter.GetBytes((UInt32)0));
+                        var namex = new byte[0x10];
+                        VAGbits.AddRange(namex);
+
+                        VAGStream.AddRange(VAG);
+
+                        while (VAGStream.Count < node.Information.VAG.Length)
+                            VAGStream.Add(0);
+
+                        VAGbits.AddRange(VAGStream.ToArray());
+
+                        if (exportwav)
+                        {
+                            File.WriteAllBytes(folder + @"\" + name + ".wav", ADPCM.PCMtoWAV(ADPCM.ToPCMMono(VAG, VAG.Length), vag._hz, 1));
+                        }
+                        else
+                        {
+                            File.WriteAllBytes(folder + @"\" + name + ".vag", VAGbits.ToArray());
+                        }
+
+                        i++;
+                    }
+                    int index = listadeIECS.listView1.SelectedIndices[0];
+                    int Entryindex = Convert.ToInt32(listadeIECS.listView1.Items[index].SubItems[0].Text);
+                    byte[] IEC = container.Container.ReadBytes(container.sCEI_Entries[Entryindex].Pack_Offset,
+                        container.sCEI_Entries[Entryindex].Pack_Size);
+                    string saveiec = folder + @"\" + "IECS" + i.ToString() + ".bhd";
+                    File.WriteAllBytes(saveiec, IEC);
+                }
                 MessageBox.Show("Concluído!\nExtraído para: " + folder + @"\", "Extração", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
@@ -816,6 +879,9 @@ namespace SCEIVag_Pack
                             openELF.Title = "Escolha um arquivo ELF";
                             if (openELF.ShowDialog() == DialogResult.OK)
                             {
+                                if (openELF.FileName.Contains("SLUS_213.58"))
+                                    UN1 = true;
+
                                 fecharToolStripMenuItem1.Enabled = true;
                                 ShowHideAnim();
                                 await Task.Run(() =>
@@ -823,7 +889,7 @@ namespace SCEIVag_Pack
                                     Cursor.Current = Cursors.WaitCursor;
                                     #region Abrir arquivo
                                     container = new BINContainer(File.ReadAllBytes(filename),
-                                    File.ReadAllBytes(openELF.FileName), openELF.FileName);
+                                    File.ReadAllBytes(openELF.FileName), openELF.FileName, UN1, Path.GetFileNameWithoutExtension(filename));
                                     container.caminhoELF = openELF.FileName;
                                     if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
                                         FileList = container.SCEI_Names;
@@ -841,12 +907,15 @@ namespace SCEIVag_Pack
                         {
                             fecharToolStripMenuItem1.Enabled = true;
                             ShowHideAnim();
+                            if (elfpath.Contains("SLUS_213.58"))
+                                UN1 = true;
+
                             await Task.Run(() =>
                             {
                                 Cursor.Current = Cursors.WaitCursor;
                                 #region Abrir arquivo
                                 container = new BINContainer(File.ReadAllBytes(filename),
-                                File.ReadAllBytes(elfpath), elfpath);
+                                File.ReadAllBytes(elfpath), elfpath, UN1, Path.GetFileNameWithoutExtension(filename));
                                 container.caminhoELF = elfpath;
                                 if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
                                     FileList = container.SCEI_Names;
@@ -880,6 +949,9 @@ namespace SCEIVag_Pack
                         openELF.Title = "Escolha um arquivo ELF";
                         if (openELF.ShowDialog() == DialogResult.OK)
                         {
+                            if (openELF.FileName.Contains("SLUS_213.58"))
+                                UN1 = true;
+
                             filename = open.FileName;
                             fecharToolStripMenuItem1.Enabled = true;
                             ShowHideAnim();
@@ -889,7 +961,7 @@ namespace SCEIVag_Pack
                                 Cursor.Current = Cursors.WaitCursor;
                                 #region Abrir arquivo
                                 container = new BINContainer(File.ReadAllBytes(filename),
-                                File.ReadAllBytes(openELF.FileName), openELF.FileName);
+                                File.ReadAllBytes(openELF.FileName), openELF.FileName, UN1, Path.GetFileNameWithoutExtension(filename));
                                 container.caminhoELF = openELF.FileName;
                                 if (container.SCEI_Names != null && container.SCEI_Names.Count > 0)
                                     FileList = container.SCEI_Names;
@@ -1044,13 +1116,23 @@ namespace SCEIVag_Pack
                             player.Stop();
                             player = null;
                         }
-                        player = new SoundPlayer(GetWav());
-                        if (GetSelected().Information.Loop == false)
-                            player.Play();
-                        else
-                            player.PlayLooping();
+                        
+                        if(UN1)
+                        {
+                            GetWav(container.ContainerName.Contains("bgm") ? 48000 : 24000);
+                        }
+                        if (!UN1)
+                        {
+                            player = new SoundPlayer(GetWav());
+                            if (GetSelected().Information.Loop == false)
+                                player.Play();
+                            else
+                                player.PlayLooping();
+
+                            propertyGrid1.SelectedObject = GetSelected().Information;
+                        }
+                        
                     }
-                    propertyGrid1.SelectedObject = GetSelected().Information;
                 }
                 else
                 {

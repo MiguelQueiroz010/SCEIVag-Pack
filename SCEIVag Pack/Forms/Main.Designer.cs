@@ -66,6 +66,7 @@
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.axWindowsMediaPlayer1 = new AxWMPLib.AxWindowsMediaPlayer();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.animpanel = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
@@ -76,6 +77,7 @@
             this.scei_layout.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).BeginInit();
             this.animpanel.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -111,14 +113,14 @@
             // abrirBINToolStripMenuItem
             // 
             this.abrirBINToolStripMenuItem.Name = "abrirBINToolStripMenuItem";
-            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.abrirBINToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.abrirBINToolStripMenuItem.Text = "Open Container";
             this.abrirBINToolStripMenuItem.Click += new System.EventHandler(this.abrirBINToolStripMenuItem_Click);
             // 
             // abrirIECToolStripMenuItem
             // 
             this.abrirIECToolStripMenuItem.Name = "abrirIECToolStripMenuItem";
-            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.abrirIECToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.abrirIECToolStripMenuItem.Text = "Open BHD";
             this.abrirIECToolStripMenuItem.Click += new System.EventHandler(this.abrirIECToolStripMenuItem_Click);
             // 
@@ -126,7 +128,7 @@
             // 
             this.salvarToolStripMenuItem.Enabled = false;
             this.salvarToolStripMenuItem.Name = "salvarToolStripMenuItem";
-            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.salvarToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.salvarToolStripMenuItem.Text = "Save";
             this.salvarToolStripMenuItem.Click += new System.EventHandler(this.salvarToolStripMenuItem_Click);
             // 
@@ -134,7 +136,7 @@
             // 
             this.salvarComoToolStripMenuItem.Enabled = false;
             this.salvarComoToolStripMenuItem.Name = "salvarComoToolStripMenuItem";
-            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.salvarComoToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.salvarComoToolStripMenuItem.Text = "Save As";
             this.salvarComoToolStripMenuItem.Click += new System.EventHandler(this.salvarComoToolStripMenuItem_Click);
             // 
@@ -142,14 +144,14 @@
             // 
             this.fecharToolStripMenuItem.Enabled = false;
             this.fecharToolStripMenuItem.Name = "fecharToolStripMenuItem";
-            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.fecharToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.fecharToolStripMenuItem.Text = "Close";
             this.fecharToolStripMenuItem.Click += new System.EventHandler(this.fecharToolStripMenuItem_Click);
             // 
             // sairToolStripMenuItem
             // 
             this.sairToolStripMenuItem.Name = "sairToolStripMenuItem";
-            this.sairToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sairToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.sairToolStripMenuItem.Text = "Exit";
             this.sairToolStripMenuItem.Click += new System.EventHandler(this.sairToolStripMenuItem_Click);
             // 
@@ -388,7 +390,7 @@
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 2;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 84.11215F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 15.88785F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.88785F));
             this.tableLayoutPanel2.Size = new System.Drawing.Size(254, 428);
             this.tableLayoutPanel2.TabIndex = 2;
             // 
@@ -397,19 +399,29 @@
             this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid1.Location = new System.Drawing.Point(3, 3);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(248, 354);
+            this.propertyGrid1.Size = new System.Drawing.Size(248, 336);
             this.propertyGrid1.TabIndex = 0;
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.axWindowsMediaPlayer1);
             this.groupBox1.Controls.Add(this.linkLabel1);
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox1.Location = new System.Drawing.Point(3, 363);
+            this.groupBox1.Location = new System.Drawing.Point(3, 345);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(248, 62);
+            this.groupBox1.Size = new System.Drawing.Size(248, 80);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = " ";
+            // 
+            // axWindowsMediaPlayer1
+            // 
+            this.axWindowsMediaPlayer1.Enabled = true;
+            this.axWindowsMediaPlayer1.Location = new System.Drawing.Point(18, 44);
+            this.axWindowsMediaPlayer1.Name = "axWindowsMediaPlayer1";
+            this.axWindowsMediaPlayer1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axWindowsMediaPlayer1.OcxState")));
+            this.axWindowsMediaPlayer1.Size = new System.Drawing.Size(203, 30);
+            this.axWindowsMediaPlayer1.TabIndex = 1;
             // 
             // linkLabel1
             // 
@@ -447,6 +459,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 66F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(644, 434);
             this.tableLayoutPanel1.TabIndex = 0;
+            this.tableLayoutPanel1.Visible = false;
             // 
             // animlbl
             // 
@@ -500,6 +513,7 @@
             this.tableLayoutPanel2.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).EndInit();
             this.animpanel.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
@@ -539,7 +553,6 @@
         private System.Windows.Forms.ToolStripMenuItem littleEndianToolStripMenuItem;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.Panel animpanel;
         public System.Windows.Forms.TreeView treeView1;
         public System.Windows.Forms.PropertyGrid propertyGrid1;
         public System.Windows.Forms.LinkLabel linkLabel1;
@@ -549,9 +562,11 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
         public System.Windows.Forms.ToolStripMenuItem treevmenuitem;
         public System.Windows.Forms.ToolStripMenuItem addToolStripMenuItem;
+        private System.Windows.Forms.Panel animpanel;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         public System.Windows.Forms.Label animlbl;
         private System.Windows.Forms.PictureBox pictureBox1;
-    }
-}
+        private AxWMPLib.AxWindowsMediaPlayer axWindowsMediaPlayer1;
+        }
+        }
 

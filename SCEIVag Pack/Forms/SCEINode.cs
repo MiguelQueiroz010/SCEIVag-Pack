@@ -17,6 +17,8 @@ namespace SCEIVag_Pack.Forms
         public IECS.Prog.Entry Entry;
         public IECS.VagSamples.Sample Sample;
         public IECS.Sset.SampleSet SampleSet;
+
+        public BINContainer.SCEI_Entry SCEntry;
         public SCEINode()
         {
             InitializeComponent();
