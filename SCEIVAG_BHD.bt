@@ -1,0 +1,111 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.1 Binary Template
+//
+//      File: SCEIVAG_CONTAINER.bt
+//   Authors: Bit.Raiden (MiguelQueiroz)
+//   Version: 1
+//   Purpose: Read BHD internal Sony Vag Audio Format from Ultimate Ninja's SNDDATA.BIN internal files;
+//------------------------------------------------
+LittleEndian();
+
+struct Version{
+    int64 MAGIC;
+    int Size;
+    int16 _unk;
+    int16 Version;
+    } _Version;
+    
+struct Header{
+    int64 MAGIC;
+    int Size;
+    
+    int SectionsSize;
+    int VAGStream_Size;
+    int ProgSection_Size;
+    int PSSetSection_Size;
+    
+    int SamplesSec_Offset;
+    int VAGSIndexSec_Offset;
+    
+    while (FTell() != VAGSIndexSec_Offset)
+       FSeek(FTell() + 4);
+       
+    } _Header;
+
+
+
+struct VagInfo{
+    int64 MAGIC;
+    int Size;
+    
+    int VAGs_Count;
+    int Info_Offsets[VAGs_Count+1];
+    
+    struct VagInfo_Data{
+        int Stream_Offs;
+        int16 Frequency;
+        byte Loop;
+        byte EndSignal;
+        } _VagInfos [VAGs_Count+1];
+        
+    while (FTell() != _Header.SamplesSec_Offset)
+       FSeek(FTell() + 4);
+    
+    } _VagInfo;
+    
+       
+struct Samples{
+    int64 MAGIC;
+    int Size;
+    int Samples_Count;
+    int Info_Offsets[Samples_Count+1];
+   //PULEI A SEÇÃO DE BLOCOS 0x2A, MOTIVO: Entradas
+   //0xFF vazias demais para o 010Editor com poucas
+   //funções C++.
+   
+   
+    FSeek(_Header.SamplesSec_Offset + Size);
+    } _VagSample;
+struct PSset{
+    int64 MAGIC;
+    int Size;
+    int Samples_Count;
+    int Info_Offsets[Samples_Count+1];
+    //PULEI A SEÇÃO DE BLOCOS ?, MOTIVO: Entradas
+   //0xFF vazias demais para o 010Editor com poucas
+   //funções C++.
+    
+    FSeek(_Header.SamplesSec_Offset + _VagSample.Size+
+    Size);
+    
+    
+    } _PSSet;
+struct Program{
+    int64 MAGIC;
+    int Size;
+    int EntriesCount;
+    int Entries_Offsets[EntriesCount+1];
+    
+    struct Entry{
+        int ID;
+        byte ExtraSection_Count; 
+        byte ExtraSection_Size;
+        byte Volume;
+        byte Unk_Data[0x1D];
+         
+         
+         struct ExtraSection{
+                int16 Index;
+                byte Rest[0x12];
+                
+                }_Extras[ExtraSection_Count]; 
+         
+        } _Entries[EntriesCount+1]<optimize=false>;
+    
+        while (FTell() % 0x800 != 0)
+       FSeek(FTell() + 4);
+    } _Program;
+    
+    byte VAG_Stream[_Header.VAGStream_Size];
+    while (FTell() % 0x800 != 0)
+       FSeek(FTell() + 4);
